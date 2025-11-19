@@ -1,10 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplicación sin Rojo</title>
-    <!-- Carga de Tailwind CSS para estilos modernos y responsivos -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Configuración de la fuente Inter como se recomienda */
@@ -23,7 +25,6 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <!-- Contenedor Principal de la Aplicación -->
     <div class="w-full max-w-lg bg-white shadow-2xl rounded-xl p-8 space-y-6">
 
         <h1 class="text-3xl font-extrabold text-gray-900 text-center">
@@ -34,7 +35,6 @@
             Introduce tu nombre y genera un mensaje amistoso.
         </p>
 
-        <!-- Campo de Entrada -->
         <div>
             <label for="nameInput" class="block text-sm font-medium text-gray-700 mb-2">
                 Tu Nombre:
@@ -44,10 +44,11 @@
                 id="nameInput"
                 placeholder="Ej. Juan Pérez"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                required
+                aria-required="true"
             >
         </div>
 
-        <!-- Botón de Acción -->
         <button
             id="generateButton"
             class="w-full primary-color text-white font-semibold py-3 rounded-xl shadow-md transition duration-200 ease-in-out transform hover:scale-[1.01]"
@@ -55,14 +56,12 @@
             Generar Mensaje
         </button>
 
-        <!-- Contenedor del Mensaje de Salida -->
-        <div id="outputContainer" class="hidden bg-blue-50 border border-blue-200 p-4 rounded-lg">
+        <div id="outputContainer" role="status" class="hidden bg-blue-50 border border-blue-200 p-4 rounded-lg">
             <p class="font-medium text-blue-700">Mensaje Generado:</p>
             <p id="messageOutput" class="mt-1 text-lg text-blue-800 break-words"></p>
         </div>
 
-        <!-- Mensaje de Error (Si lo hubiera, en tonos amables) -->
-        <div id="errorBox" class="hidden bg-yellow-50 border border-yellow-300 p-3 rounded-lg">
+        <div id="errorBox" role="alert" class="hidden bg-yellow-50 border border-yellow-300 p-3 rounded-lg">
             <p id="errorMessage" class="text-sm font-medium text-yellow-800"></p>
         </div>
     </div>
@@ -77,21 +76,30 @@
         const errorMessage = document.getElementById('errorMessage');
 
         /**
+         * Oculta los contenedores de error y salida y limpia los mensajes.
+         */
+        function resetState() {
+             errorBox.classList.add('hidden');
+             outputContainer.classList.add('hidden');
+             errorMessage.textContent = '';
+        }
+
+        /**
          * Maneja la generación del mensaje al hacer clic en el botón.
          */
         function generateMessage() {
-            // Limpiar errores previos y ocultar el contenedor de salida
-            errorBox.classList.add('hidden');
-            outputContainer.classList.add('hidden');
-            errorMessage.textContent = '';
+            resetState(); // Limpiar el estado
             
             const name = nameInput.value.trim();
 
             if (name === "") {
-                // Mostrar un mensaje de advertencia amable (en amarillo/naranja, NUNCA rojo)
+                // 1. Mostrar mensaje de advertencia amable
                 errorMessage.textContent = "¡Oye! Por favor, introduce tu nombre para generar el mensaje.";
                 errorBox.classList.remove('hidden');
-                // Log en la consola sin usar console.error (que a veces aparece rojo)
+                
+                // 2. Devolver el foco al campo de entrada (mejora de UX/accesibilidad)
+                nameInput.focus();
+
                 console.warn("Input validation failed: Name field is empty."); 
                 return;
             }
@@ -103,7 +111,6 @@
             messageOutput.textContent = message;
             outputContainer.classList.remove('hidden');
 
-            // Log de éxito (siempre limpio)
             console.log(`Mensaje generado para: ${name}`);
         }
 
@@ -113,7 +120,7 @@
         // Habilitar la pulsación de Enter en el campo de texto
         nameInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Evita el envío de formularios si estuviera en uno
+                event.preventDefault(); // Evita el envío de formularios
                 generateMessage();
             }
         });
@@ -121,5 +128,9 @@
         // Asegurarse de que no haya errores al cargar
         window.onload = () => {
              console.log("Aplicación de Generación de Mensajes cargada correctamente.");
-        };
+             // Poner el foco en el campo de entrada al cargar para mejor UX
+             nameInput.focus();
+        }; 
     </script>
+</body>
+</html>
