@@ -1,122 +1,125 @@
-#!/bin/bash
-# Flujo Completo de Git: Setup, Commits y Verificación Final antes de Push
-
-PROJECT_DIR="git-test-project"
-
-echo "--- 1. INICIANDO EL FLUJO DE TRABAJO DE GIT ---"
-echo "Creando y entrando a la carpeta: $PROJECT_DIR"
-
-# Eliminar el directorio si existe para asegurar un inicio limpio
-rm -rf $PROJECT_DIR
-mkdir $PROJECT_DIR
-cd $PROJECT_DIR
-
-# 2. Inicializar el repositorio Git
-git init -b main
-echo "Repositorio Git inicializado en la rama 'main'."
-
-# --- PASO 1: EL PRIMER COMMIT (feat: Estructura inicial) ---
-echo -e "\n--- 3. CREANDO EL CÓDIGO INICIAL Y COMMIT 1 ---"
-
-# Contenido inicial del index.html (primer commit)
-cat > index.html <<- 'EOF'
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyecto Listo para Subir</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full text-center">
-        <h1 class="text-4xl font-bold text-gray-800 mb-4">
-            ¡El Código Está Completo!
-        </h1>
-        <p class="mt-8 text-lg font-medium text-gray-700">
-            Esta es la versión inicial de la página.
-        </p>
-    </div>
-</body>
-</html>
-EOF
-
-# Añadir y commitear el primer cambio
-git add index.html
-git commit -m "feat: Inicializar estructura básica de la página."
-echo "✅ Commit 1 realizado."
-
-# --- PASO 2: EL SEGUNDO COMMIT (style: Añadir fuente) ---
-echo -e "\n--- 4. AÑADIENDO ESTILOS Y COMMIT 2 ---"
-
-# Modificar el archivo para añadir el bloque <style> con la fuente sans-serif
-cat > index.html <<- 'EOF'
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyecto Listo para Subir</title>
-    <!-- Carga de Tailwind CSS para el estilo -->
+    <title>Aplicación sin Rojo</title>
+    <!-- Carga de Tailwind CSS para estilos modernos y responsivos -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Aplicamos el tipo de fuente sans-serif a todo el cuerpo, reflejando el segundo commit */
+        /* Configuración de la fuente Inter como se recomienda */
         body {
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-            background-color: #f7f7f7;
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f8; /* Fondo claro y suave */
+        }
+        /* Color principal: un azul vibrante, sustituyendo cualquier posible rojo */
+        .primary-color {
+            background-color: #3b82f6; /* Tailwind blue-500 */
+        }
+        .primary-color:hover {
+            background-color: #2563eb; /* Tailwind blue-600 */
         }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
-    <!-- Contenedor principal con esquinas redondeadas y sombra -->
-    <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full text-center">
-        <!-- Título principal -->
-        <h1 class="text-4xl font-bold text-gray-800 mb-4">
-            ¡El Código Está Completo!
+
+    <!-- Contenedor Principal de la Aplicación -->
+    <div class="w-full max-w-lg bg-white shadow-2xl rounded-xl p-8 space-y-6">
+
+        <h1 class="text-3xl font-extrabold text-gray-900 text-center">
+            Generador de Mensajes
         </h1>
-        <!-- Mensaje de confirmación de los commits -->
-        <p class="text-gray-600 mb-6">
-            Esta es la versión final de nuestro archivo. Incluye la estructura básica inicial y la aplicación de la fuente sans-serif.
+
+        <p class="text-gray-600 text-center">
+            Introduce tu nombre y genera un mensaje amistoso.
         </p>
 
-        <!-- Detalle de los cambios -->
-        <div class="space-y-4 text-left">
-            <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                <p class="font-semibold text-indigo-700">Commit 1 (feat):</p>
-                <p class="text-sm text-indigo-600">Estructura básica de la página (index.html).</p>
-            </div>
-            <div class="p-3 bg-green-50 rounded-lg border border-green-200">
-                <p class="font-semibold text-green-700">Commit 2 (style):</p>
-                <p class="text-sm text-green-600">Estilo de fuente sans-serif aplicado a toda la página.</p>
-            </div>
+        <!-- Campo de Entrada -->
+        <div>
+            <label for="nameInput" class="block text-sm font-medium text-gray-700 mb-2">
+                Tu Nombre:
+            </label>
+            <input
+                type="text"
+                id="nameInput"
+                placeholder="Ej. Juan Pérez"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+            >
         </div>
 
-        <p class="mt-8 text-lg font-medium text-gray-700">
-            ¡Listo para hacer git push!
-        </p>
+        <!-- Botón de Acción -->
+        <button
+            id="generateButton"
+            class="w-full primary-color text-white font-semibold py-3 rounded-xl shadow-md transition duration-200 ease-in-out transform hover:scale-[1.01]"
+        >
+            Generar Mensaje
+        </button>
+
+        <!-- Contenedor del Mensaje de Salida -->
+        <div id="outputContainer" class="hidden bg-blue-50 border border-blue-200 p-4 rounded-lg">
+            <p class="font-medium text-blue-700">Mensaje Generado:</p>
+            <p id="messageOutput" class="mt-1 text-lg text-blue-800 break-words"></p>
+        </div>
+
+        <!-- Mensaje de Error (Si lo hubiera, en tonos amables) -->
+        <div id="errorBox" class="hidden bg-yellow-50 border border-yellow-300 p-3 rounded-lg">
+            <p id="errorMessage" class="text-sm font-medium text-yellow-800"></p>
+        </div>
     </div>
-</body>
-</html>
-EOF
 
-# Añadir y commitear el segundo cambio
-git add index.html
-git commit -m "style: Aplicar fuente sans-serif al cuerpo de la página."
-echo "✅ Commit 2 realizado."
+    <script>
+        // Obtener referencias a los elementos del DOM
+        const nameInput = document.getElementById('nameInput');
+        const generateButton = document.getElementById('generateButton');
+        const outputContainer = document.getElementById('outputContainer');
+        const messageOutput = document.getElementById('messageOutput');
+        const errorBox = document.getElementById('errorBox');
+        const errorMessage = document.getElementById('errorMessage');
 
+        /**
+         * Maneja la generación del mensaje al hacer clic en el botón.
+         */
+        function generateMessage() {
+            // Limpiar errores previos y ocultar el contenedor de salida
+            errorBox.classList.add('hidden');
+            outputContainer.classList.add('hidden');
+            errorMessage.textContent = '';
+            
+            const name = nameInput.value.trim();
 
-# --- PASO 3: VERIFICACIÓN FINAL ANTES DEL PUSH ---
-echo -e "\n--- 5. REPORTE FINAL: Historial de Commits ---"
-git log --oneline --max-count=2
-echo "------------------------------------------------"
+            if (name === "") {
+                // Mostrar un mensaje de advertencia amable (en amarillo/naranja, NUNCA rojo)
+                errorMessage.textContent = "¡Oye! Por favor, introduce tu nombre para generar el mensaje.";
+                errorBox.classList.remove('hidden');
+                // Log en la consola sin usar console.error (que a veces aparece rojo)
+                console.warn("Input validation failed: Name field is empty."); 
+                return;
+            }
 
-echo -e "\n--- 6. REPORTE FINAL: Estado del Repositorio (git status) ---"
-git status
-echo "------------------------------------------------"
+            // Lógica de generación del mensaje
+            const message = `Hola, ${name}. ¡Tu solicitud ha sido procesada con éxito! Esperamos que tengas un día increíble y lleno de energía.`;
 
-echo -e "\n--- RESUMEN ---"
-echo "El repositorio tiene 2 commits pendientes de subir (ahead of 'origin/main')."
-echo "¡Estás listo para el comando 'git push'!"
+            // Mostrar el resultado
+            messageOutput.textContent = message;
+            outputContainer.classList.remove('hidden');
 
-# Volver al directorio original
-cd ..
+            // Log de éxito (siempre limpio)
+            console.log(`Mensaje generado para: ${name}`);
+        }
+
+        // Asignar el listener al botón
+        generateButton.addEventListener('click', generateMessage);
+        
+        // Habilitar la pulsación de Enter en el campo de texto
+        nameInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Evita el envío de formularios si estuviera en uno
+                generateMessage();
+            }
+        });
+
+        // Asegurarse de que no haya errores al cargar
+        window.onload = () => {
+             console.log("Aplicación de Generación de Mensajes cargada correctamente.");
+        };
+    </script>
