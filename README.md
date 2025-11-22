@@ -1,5 +1,4 @@
-
-
+ 
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -24,7 +23,62 @@
 
   <main class="container">
 
-    <!-- SUBIDA DE CSV -->:root{
+    <!-- SUBIDA DE CSV -->
+    <section class="card">
+      <h2>Cargar Archivo CSV</h2>
+      <input id="file-input" type="file" accept=".csv">
+
+      <div id="preview-controls" class="hidden">
+
+        <label>Columna Monto:</label>
+        <select id="col-amount"></select>
+
+        <label>Columna Descripción:</label>
+        <select id="col-desc"></select>
+
+        <label>Columna Moneda:</label>
+        <select id="col-curr"></select>
+
+        <label>Columna Tipo:</label>
+        <select id="col-type"></select>
+
+        <button id="generate-entries">Generar Asientos</button>
+      </div>
+    </section>
+
+    <!-- PREVIEW TABLA + ASIENTOS -->
+    <section id="preview-section" class="card hidden">
+      <h2>Transacciones detectadas</h2>
+      <div id="table-wrap"></div>
+
+      <h3>Asientos generados</h3>
+      <div id="entries-wrap"></div>
+
+      <div class="actions">
+        <button id="export-csv">Exportar CSV</button>
+        <button id="export-xlsx">Exportar Excel</button>
+        <button id="export-pdf">Exportar PDF</button>
+        <button id="download-original" class="secondary">Descargar Original</button>
+      </div>
+    </section>
+
+    <!-- IA GENERATIVA -->
+    <section class="card">
+      <h2>Análisis Inteligente (IA Generativa)</h2>
+      <button id="run-ai">Analizar con IA</button>
+      <div id="ai-output" class="ai-box"></div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <small>Finanzas AI © Prototipo | Listo para GitHub Pages</small>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="ia.js"></script>
+</body>
+</html>.       :root{
   --bg:#f6f8fb;
   --card:#ffffff;
   --accent:#1f6feb;
@@ -88,180 +142,47 @@ th{background:#f6f9ff;position:sticky;top:0;}
   white-space:pre-wrap;
 }
 
-.footer{text-align:center;padding:12px;color:#777;}// Variables globales
-let originalData = null;
-let headers = [];
+.footer{text-align:center;padding:12px;color:#777;}.      document.getElementById("run-ai").addEventListener("click", ()=>{
 
-// Elementos del DOM
-const fileInput = document.getElementById('file-input');
-const previewControls = document.getElementById('preview-controls');
-const previewSection = document.getElementById('preview-section');
-const tableWrap = document.getElementById('table-wrap');
-const entriesWrap = document.getElementById('entries-wrap');
+  if (!originalData){
+    return alert("Subí un CSV primero.");
+  }
 
-const selAmount = document.getElementById('col-amount');
-const selDesc = document.getElementById('col-desc');
-const selCurr = document.getElementById('col-curr');
-const selType = document.getElementById('col-type');
+  const resumen = generarResumen(originalData);
+  const mensaje = `
+📊 Análisis IA Generativa — DEMO LOCAL
+---------------------------------------
 
-// Cargar CSV
-fileInput.addEventListener("change", e => {
-  const file = e.target.files[0];
-  if (!file) return;
+Total de transacciones: ${resumen.total}
+Monto promedio: ${resumen.promedio.toFixed(2)}
+Monto máximo: ${resumen.max.toFixed(2)}
+Monedas detectadas: ${resumen.monedas.join(", ")}
 
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    complete: (res) => {
-      originalData = res.data;
-      headers = res.meta.fields;
+🧠 Sugerencias contables automáticas:
+- Detecto ${resumen.pagos_grandes} pagos inusualmente grandes.
+- Las ventas superiores a ARS 50.000 pueden requerir asiento compuesto.
+- Los gastos pequeños son consistentes y podrían agruparse.
+- Se pueden clasificar automáticamente: compras, ventas, servicios y misceláneos.
 
-      if (!headers.length) {
-        alert("El CSV no tiene encabezados.");
-        return;
-      }
+💡 Nota:
+Esta IA está en modo DEMO (sin servidor).
+Si querés la versión real conectada a OpenAI o Gemini → te la preparo.
+  `;
 
-      setupSelectors(headers);
-      renderTable(originalData, headers);
-
-      previewControls.classList.remove("hidden");
-      previewSection.classList.remove("hidden");
-    }
-  });
+  document.getElementById("ai-output").textContent = mensaje;
 });
 
-// Rellenar selects
-function setupSelectors(hdrs){
-  [selAmount, selDesc, selCurr, selType].forEach(sel=>{
-    sel.innerHTML = '<option value="">-- elegir --</option>';
-    hdrs.forEach(h=>{
-      let op = document.createElement("option");
-      op.value = h; op.textContent = h;
-      sel.appendChild(op);
-    });
-  });
-}
+function generarResumen(data){
+  const montos = data.map(r => parseFloat(String(r.amount || r.monto || 0).replace(",", ".")) || 0);
 
-// Tabla de preview
-function renderTable(data, hdrs){
-  let html = `<table><thead><tr>`;
-  hdrs.forEach(h=> html += `<th>${h}</th>`);
-  html += `</tr></thead><tbody>`;
-
-  data.slice(0,200).forEach(row=>{
-    html += `<tr>`;
-    hdrs.forEach(h=>{
-      html += `<td>${row[h] ?? ""}</td>`;
-    });
-    html += `</tr>`;
-  });
-
-  html += `</tbody></table>`;
-  tableWrap.innerHTML = html;
-}
-
-// Generar Asientos
-document.getElementById("generate-entries").addEventListener("click", ()=>{
-
-  const A = selAmount.value;
-  const D = selDesc.value;
-  const C = selCurr.value;
-  const T = selType.value;
-
-  const entries = [];
-
-  originalData.forEach(row=>{
-
-    const monto = parseFloat(String(row[A] || "0").replace(",", ".")) || 0;
-    const desc  = row[D] || "";
-    const curr  = row[C] || "";
-    let tipo    = row[T] ? row[T].toLowerCase() : "";
-
-    // heurística básica
-    if (/comp/.test(tipo)) tipo="compra";
-    else if (/vent|ingr/.test(tipo)) tipo="venta";
-    else tipo = monto < 0 ? "compra" : "venta";
-
-    entries.push({
-      fecha: row["date"] || row["fecha"] || "",
-      descripcion: desc,
-      moneda: curr,
-      debe_cuenta: tipo==="venta" ? "Clientes" : "Gastos",
-      haber_cuenta: tipo==="venta" ? "Ingresos" : "Proveedores",
-      monto: Math.abs(monto)
-    });
-  });
-
-  window._generatedEntries = entries;
-  renderEntries(entries);
-});
-
-// Render entries
-function renderEntries(entries){
-  entriesWrap.innerHTML = "";
-  entries.forEach((e,i)=>{
-    entriesWrap.innerHTML += `
-      <div class="entry">
-        <strong>#${i+1}</strong>
-        <div>${e.fecha} — ${e.moneda}</div>
-        <div><em>${e.descripcion}</em></div>
-        <div>DEBE: ${e.debe_cuenta} — ${e.monto}</div>
-        <div>HABER: ${e.haber_cuenta} — ${e.monto}</div>
-      </div>
-    `;
-  });
-}
-
-// EXPORTS
-document.getElementById("export-csv").addEventListener("click", ()=>{
-  let e = window._generatedEntries || [];
-  if (!e.length) return alert("No hay asientos.");
-
-  const headers = ["fecha","descripcion","moneda","debe_cuenta","haber_cuenta","monto"];
-  const csv = [headers.join(",")]
-    .concat(e.map(r => headers.map(h => `"${r[h]}"`).join(",")))
-    .join("\n");
-
-  downloadFile("asientos.csv", csv, "text/csv");
-});
-
-document.getElementById("export-xlsx").addEventListener("click", ()=>{
-  let e = window._generatedEntries || [];
-  if (!e.length) return alert("No hay asientos.");
-
-  const ws = XLSX.utils.json_to_sheet(e);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Asientos");
-  XLSX.writeFile(wb, "asientos.xlsx");
-});
-
-document.getElementById("export-pdf").addEventListener("click", ()=>{
-  let e = window._generatedEntries || [];
-  if (!e.length) return alert("No hay asientos.");
-
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF();
-  const rows = e.map((r,i)=>[i+1, r.fecha, r.descripcion, r.moneda, r.debe_cuenta, r.haber_cuenta, r.monto]);
-
-  pdf.text("Asientos Contables — Finanzas AI", 10, 10);
-  pdf.autoTable({
-    head:[["#","Fecha","Descripcion","Moneda","Debe","Haber","Monto"]],
-    body:rows,
-    startY:20
-  });
-
-  pdf.save("asientos.pdf");
-});
-
-// Descargar archivo helper
-function downloadFile(name, data, type){
-  const blob = new Blob([data], {type});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = name;
-  a.click();
-  URL.revokeObjectURL(url);
-}document.getElementById("run-ai").addEventListener("click", ()=>{
+  return {
+    total: data.length,
+    promedio: montos.reduce((a,b)=>a+b,0)/montos.length,
+    max: Math.max(...montos),
+    monedas: [...new Set(data.map(r => r.currency || r.moneda || "N/A"))],
+    pagos_grandes: montos.filter(v => v > 50000).length
+  };
+}.               document.getElementById("run-ai").addEventListener("click", ()=>{
 
   if (!originalData){
     return alert("Subí un CSV primero.");
