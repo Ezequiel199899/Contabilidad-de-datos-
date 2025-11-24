@@ -1,196 +1,609 @@
-        # models.py
-from typing import Optional
-from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime
+!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FINANZAS IA — App</title>
+  <link rel="stylesheet" href="style.css" />
 
-class Company(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+  <!-- Libs -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
 
-    users: list["User"] = Relationship(back_populates="company")
+<body>
 
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    email: str = Field(index=True, unique=True)
-    full_name: Optional[str] = None
-    hashed_password: str
-    is_active: bool = True
-    role: str = "user"  # admin/user
-    company_id: Optional[int] = Field(default=None, foreign_key="company.id")
-    company: Optional[Company] = Relationship(back_populates="users")   # db.py
-from sqlmodel import create_engine, SQLModel, Session
-from pathlib import Path
+  <header class="site-header">
+    <div class="brand">
+      <div id="logo-placeholder">FINANZAS IA</div>
+      <div class="tag">Tecnología + Análisis Financiero + IA</div>
+    </div>
+    <nav class="main-nav">
+      <a href="#services">Servicios</a>
+      <a href="#plans">Planes</a>
+      <a href="#app">App</a>
+      <a href="#contact">Contacto</a>
+    </nav>
+  </header>
 
-DB_FILE = Path(__file__).resolve().parents[1] / "finanzas.db"
-DATABASE_URL = f"sqlite:///{DB_FILE}".                  
+  <main>
+    <section class="hero" id="app">
+      <h1>Automatización contable con IA</h1>
+      <p>Subí tu archivo CSV, mapeá columnas y generá asientos en segundos.</p>
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+      <div class="cta-row">
+        <button id="btn-login" class="btn outline">Login / Register</button>
+        <a class="btn primary" href="#contact">Contratar</a>
+      </div>
+    </section>
 
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
+    <section class="section card">
+      <h2>Cargar CSV</h2>
 
-def get_session():
-    with Session(engine) as session:
-        yield session.               vbvv.  # api.py
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from typing import List
-from .db import get_session
-from sqlmodel import Session, select
-from .models import User, Company
-from .auth import hash_password, verify_password, create_access_token, get_current_user
+      <input id="file-input" type="file" accept=".csv" />
 
-router = APIRouter()
+      <div id="preview-controls" class="cols hidden">
+        <div><label>Monto</label><select id="col-amount"></select></div>
+        <div><label>Descripción</label><select id="col-desc"></select></div>
+        <div><label>Moneda</label><select id="col-curr"></select></div>
+        <div><label>Tipo</label><select id="col-type"></select></div>
+      </div>
 
-class RegisterPayload(BaseModel):
-    email: str
-    password: str
-    full_name: str = ""
-    company_name: str = ""
+      <div id="table-wrap" class="table-wrap hidden"></div>
 
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+      <div class="actions hidden" id="generate-row">
+        <button id="generate-entries" class="btn primary">Generar Asientos</button>
+      </div>
+    </section>
 
-@router.post("/auth/register", response_model=TokenResponse)
-def register(payload: RegisterPayload):
-    with next(get_session()) as session:
-        # create or get company
-        comp = None
-        if payload.company_name:
-            stmt = select(Company).where(Company.name == payload.company_name)
-            comp = session.exec(stmt).first()
-            if not comp:
-                comp = Company(name=payload.company_name)
-                session.add(comp)
-                session.commit()
-                session.refresh(comp)
-        # check user
-        stmt = select(User).where(User.email == payload.email)
-        if session.exec(stmt).first():
-            raise HTTPException(status_code=400, detail="Email ya registrado")
-        hashed = hash_password(payload.password)
-        user = User(email=payload.email, full_name=payload.full_name, hashed_password=hashed, company_id=(comp.id if comp else None))
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-        token = create_access_token({"sub": str(user.id)})
-        return {"access_token": token}
+    <section class="section card hidden" id="entries-section">
+      <h2>Asientos generados</h2>
 
-class LoginPayload(BaseModel):
-    email: str
-    password: str
+      <div id="entries-wrap"></div>
 
-@router.post("/auth/token", response_model=TokenResponse)
-def login(payload: LoginPayload):
-    with next(get_session()) as session:
-        stmt = select(User).where(User.email == payload.email)
-        user = session.exec(stmt).first()
-        if not user or not verify_password(payload.password, user.hashed_password):
-            raise HTTPException(status_code=401, detail="Credenciales inválidas")
-        token = create_access_token({"sub": str(user.id)})
-        return {"access_token": token}
+      <div class="actions">
+        <button id="export-csv" class="btn">Exportar CSV</button>
+        <button id="export-xlsx" class="btn">Exportar Excel</button>
+        <button id="export-pdf" class="btn">Exportar PDF</button>
+        <button id="download-original" class="btn outline">CSV original</button>
+      </div>
+    </section>
 
-# protected example: list companies of user
-@router.get("/me/companies")
-def my_companies(current_user: User = Depends(get_current_user)):
-    return {"company_id": current_user.company_id, "role": current_user.role, "email": current_user.email}.               # main.py
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from .api import router as api_router
-from .db import create_db_and_tables
+    <section class="section card" id="services">
+      <h2>Servicios</h2>
+      <ul>
+        <li>Automatización contable con IA Generativa</li>
+        <li>Modelos de anomalías</li>
+        <li>Sistema multimoneda</li>
+        <li>Dashboards financieros</li>
+        <li>Integración API</li>
+        <li>Consultoría profesional</li>
+      </ul>
+    </section>
 
-app = FastAPI(title="Finanzas AI API")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-app.include_router(api_router, prefix="")
+    <section class="section card" id="plans">
+      <h2>Planes</h2>
+      <div class="plans">
+        <div class="plan"><h3>Básico</h3><p>USD 300 / mes</p></div>
+        <div class="plan highlighted"><h3>Pro</h3><p>USD 900 / mes</p></div>
+        <div class="plan"><h3>Empresa</h3><p>USD 2000 / mes</p></div>
+      </div>
+    </section>
 
-# crear BD al iniciar
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
+    <section class="section card" id="contact">
+      <h2>Contacto</h2>
+      <p>WhatsApp: 2613991663</p>
+      <p>Email: priluskyezequielsamuel@gmail.com</p>
+    </section>
+  </main>
 
-@app.get("/")
-def root():
-    return {"status":"ok"}.   // auth helpers (frontend)
-function saveToken(t){ localStorage.setItem('fa_token', t); }
-function getToken(){ return localStorage.getItem('fa_token'); }
-function authHeaders(){ const tk = getToken(); return tk ? {'Authorization':'Bearer '+tk} : {}; }
+  <footer class="footer">
+    © 2025 FINANZAS IA — Ezequiel S. Prilusky
+  </footer>
 
-// register
-async function registerUser(email, pass, name, company){
-  const res = await fetch('/auth/register', {
-    method:'POST', headers:{'Content-Type':'application/json'}, 
-    body:JSON.stringify({email, password:pass, full_name:name, company_name:company})
-  });
-  if(!res.ok) throw await res.text();
-  const j = await res.json(); saveToken(j.access_token);
-  alert('Registrado y logueado');
+  <script src="app.js"></script>
+</body>
+</html>               <!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FINANZAS IA — App</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Libs -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body>
+
+  <header class="site-header">
+    <div class="brand">
+      <div id="logo-placeholder">FINANZAS IA</div>
+      <div class="tag">Tecnología + Análisis Financiero + IA</div>
+    </div>
+    <nav class="main-nav">
+      <a href="#services">Servicios</a>
+      <a href="#plans">Planes</a>
+      <a href="#app">App</a>
+      <a href="#contact">Contacto</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="app">
+      <h1>Automatización contable con IA</h1>
+      <p>Subí tu archivo CSV, mapeá columnas y generá asientos en segundos.</p>
+
+      <div class="cta-row">
+        <button id="btn-login" class="btn outline">Login / Register</button>
+        <a class="btn primary" href="#contact">Contratar</a>
+      </div>
+    </section>
+
+    <section class="section card">
+      <h2>Cargar CSV</h2>
+
+      <input id="file-input" type="file" accept=".csv" />
+
+      <div id="preview-controls" class="cols hidden">
+        <div><label>Monto</label><select id="col-amount"></select></div>
+        <div><label>Descripción</label><select id="col-desc"></select></div>
+        <div><label>Moneda</label><select id="col-curr"></select></div>
+        <div><label>Tipo</label><select id="col-type"></select></div>
+      </div>
+
+      <div id="table-wrap" class="table-wrap hidden"></div>
+
+      <div class="actions hidden" id="generate-row">
+        <button id="generate-entries" class="btn primary">Generar Asientos</button>
+      </div>
+    </section>
+
+    <section class="section card hidden" id="entries-section">
+      <h2>Asientos generados</h2>
+
+      <div id="entries-wrap"></div>
+
+      <div class="actions">
+        <button id="export-csv" class="btn">Exportar CSV</button>
+        <button id="export-xlsx" class="btn">Exportar Excel</button>
+        <button id="export-pdf" class="btn">Exportar PDF</button>
+        <button id="download-original" class="btn outline">CSV original</button>
+      </div>
+    </section>
+
+    <section class="section card" id="services">
+      <h2>Servicios</h2>
+      <ul>
+        <li>Automatización contable con IA Generativa</li>
+        <li>Modelos de anomalías</li>
+        <li>Sistema multimoneda</li>
+        <li>Dashboards financieros</li>
+        <li>Integración API</li>
+        <li>Consultoría profesional</li>
+      </ul>
+    </section>
+
+    <section class="section card" id="plans">
+      <h2>Planes</h2>
+      <div class="plans">
+        <div class="plan"><h3>Básico</h3><p>USD 300 / mes</p></div>
+        <div class="plan highlighted"><h3>Pro</h3><p>USD 900 / mes</p></div>
+        <div class="plan"><h3>Empresa</h3><p>USD 2000 / mes</p></div>
+      </div>
+    </section>
+
+    <section class="section card" id="contact">
+      <h2>Contacto</h2>
+      <p>WhatsApp: 2613991663</p>
+      <p>Email: priluskyezequielsamuel@gmail.com</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    © 2025 FINANZAS IA — Ezequiel S. Prilusky
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>                 <!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FINANZAS IA — App</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Libs -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body>
+
+  <header class="site-header">
+    <div class="brand">
+      <div id="logo-placeholder">FINANZAS IA</div>
+      <div class="tag">Tecnología + Análisis Financiero + IA</div>
+    </div>
+    <nav class="main-nav">
+      <a href="#services">Servicios</a>
+      <a href="#plans">Planes</a>
+      <a href="#app">App</a>
+      <a href="#contact">Contacto</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="app">
+      <h1>Automatización contable con IA</h1>
+      <p>Subí tu archivo CSV, mapeá columnas y generá asientos en segundos.</p>
+
+      <div class="cta-row">
+        <button id="btn-login" class="btn outline">Login / Register</button>
+        <a class="btn primary" href="#contact">Contratar</a>
+      </div>
+    </section>
+
+    <section class="section card">
+      <h2>Cargar CSV</h2>
+
+      <input id="file-input" type="file" accept=".csv" />
+
+      <div id="preview-controls" class="cols hidden">
+        <div><label>Monto</label><select id="col-amount"></select></div>
+        <div><label>Descripción</label><select id="col-desc"></select></div>
+        <div><label>Moneda</label><select id="col-curr"></select></div>
+        <div><label>Tipo</label><select id="col-type"></select></div>
+      </div>
+
+      <div id="table-wrap" class="table-wrap hidden"></div>
+
+      <div class="actions hidden" id="generate-row">
+        <button id="generate-entries" class="btn primary">Generar Asientos</button>
+      </div>
+    </section>
+
+    <section class="section card hidden" id="entries-section">
+      <h2>Asientos generados</h2>
+
+      <div id="entries-wrap"></div>
+
+      <div class="actions">
+        <button id="export-csv" class="btn">Exportar CSV</button>
+        <button id="export-xlsx" class="btn">Exportar Excel</button>
+        <button id="export-pdf" class="btn">Exportar PDF</button>
+        <button id="download-original" class="btn outline">CSV original</button>
+      </div>
+    </section>
+
+    <section class="section card" id="services">
+      <h2>Servicios</h2>
+      <ul>
+        <li>Automatización contable con IA Generativa</li>
+        <li>Modelos de anomalías</li>
+        <li>Sistema multimoneda</li>
+        <li>Dashboards financieros</li>
+        <li>Integración API</li>
+        <li>Consultoría profesional</li>
+      </ul>
+    </section>
+
+    <section class="section card" id="plans">
+      <h2>Planes</h2>
+      <div class="plans">
+        <div class="plan"><h3>Básico</h3><p>USD 300 / mes</p></div>
+        <div class="plan highlighted"><h3>Pro</h3><p>USD 900 / mes</p></div>
+        <div class="plan"><h3>Empresa</h3><p>USD 2000 / mes</p></div>
+      </div>
+    </section>
+
+    <section class="section card" id="contact">
+      <h2>Contacto</h2>
+      <p>WhatsApp: 2613991663</p>
+      <p>Email: priluskyezequielsamuel@gmail.com</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    © 2025 FINANZAS IA — Ezequiel S. Prilusky
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>.             <!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FINANZAS IA — App</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Libs -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body>
+
+  <header class="site-header">
+    <div class="brand">
+      <div id="logo-placeholder">FINANZAS IA</div>
+      <div class="tag">Tecnología + Análisis Financiero + IA</div>
+    </div>
+    <nav class="main-nav">
+      <a href="#services">Servicios</a>
+      <a href="#plans">Planes</a>
+      <a href="#app">App</a>
+      <a href="#contact">Contacto</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="app">
+      <h1>Automatización contable con IA</h1>
+      <p>Subí tu archivo CSV, mapeá columnas y generá asientos en segundos.</p>
+
+      <div class="cta-row">
+        <button id="btn-login" class="btn outline">Login / Register</button>
+        <a class="btn primary" href="#contact">Contratar</a>
+      </div>
+    </section>
+
+    <section class="section card">
+      <h2>Cargar CSV</h2>
+
+      <input id="file-input" type="file" accept=".csv" />
+
+      <div id="preview-controls" class="cols hidden">
+        <div><label>Monto</label><select id="col-amount"></select></div>
+        <div><label>Descripción</label><select id="col-desc"></select></div>
+        <div><label>Moneda</label><select id="col-curr"></select></div>
+        <div><label>Tipo</label><select id="col-type"></select></div>
+      </div>
+
+      <div id="table-wrap" class="table-wrap hidden"></div>
+
+      <div class="actions hidden" id="generate-row">
+        <button id="generate-entries" class="btn primary">Generar Asientos</button>
+      </div>
+    </section>
+
+    <section class="section card hidden" id="entries-section">
+      <h2>Asientos generados</h2>
+
+      <div id="entries-wrap"></div>
+
+      <div class="actions">
+        <button id="export-csv" class="btn">Exportar CSV</button>
+        <button id="export-xlsx" class="btn">Exportar Excel</button>
+        <button id="export-pdf" class="btn">Exportar PDF</button>
+        <button id="download-original" class="btn outline">CSV original</button>
+      </div>
+    </section>
+
+    <section class="section card" id="services">
+      <h2>Servicios</h2>
+      <ul>
+        <li>Automatización contable con IA Generativa</li>
+        <li>Modelos de anomalías</li>
+        <li>Sistema multimoneda</li>
+        <li>Dashboards financieros</li>
+        <li>Integración API</li>
+        <li>Consultoría profesional</li>
+      </ul>
+    </section>
+
+    <section class="section card" id="plans">
+      <h2>Planes</h2>
+      <div class="plans">
+        <div class="plan"><h3>Básico</h3><p>USD 300 / mes</p></div>
+        <div class="plan highlighted"><h3>Pro</h3><p>USD 900 / mes</p></div>
+        <div class="plan"><h3>Empresa</h3><p>USD 2000 / mes</p></div>
+      </div>
+    </section>
+
+    <section class="section card" id="contact">
+      <h2>Contacto</h2>
+      <p>WhatsApp: 2613991663</p>
+      <p>Email: priluskyezequielsamuel@gmail.com</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    © 2025 FINANZAS IA — Ezequiel S. Prilusky
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>.                   :root{
+  --bg:#0a1a33;
+  --card:#0f2345;
+  --accent:#3a5ed7;
+  --muted:#9fb0df;
 }
 
-// login
-async function loginUser(email, pass){
-  const res = await fetch('/auth/token', {
-    method:'POST', headers:{'Content-Type':'application/json'}, 
-    body:JSON.stringify({email, password:pass})
-  });
-  if(!res.ok) throw await res.text();
-  const j = await res.json(); saveToken(j.access_token); alert('Logueado');
+body{
+  margin:0;
+  background:var(--bg);
+  color:white;
+  font-family:Arial,sans-serif;
 }
 
-// use token when calling predict-summary
-document.getElementById('run-ai').addEventListener('click', async ()=>{
-  if(!originalData) return alert('Subí un CSV primero.');
-  const token = getToken();
-  if(!token) return alert('Logueate primero.');
-  try {
-    const res = await fetch('/predict-summary', { method:'POST', headers: {...authHeaders(), 'Content-Type':'application/json'}, body: JSON.stringify({rows: originalData.slice(0,200)}) });
-    const j = await res.json();
-    document.getElementById('ai-output').textContent = j.summaryText;
-  } catch(e){ console.error(e); alert('Error comunicando con backend'); }
-});                      # api_predict.py
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel
-from .auth import get_current_user
-from .predictor import predict_summary
+.site-header{
+  display:flex;
+  justify-content:space-between;
+  padding:20px;
+  border-bottom:1px solid #14243b;
+}
 
-router = APIRouter()
+.hero{
+  text-align:center;
+  padding:60px 20px;
+}
 
-class RowsPayload(BaseModel):
-    rows: list
+.btn{
+  padding:10px 16px;
+  border-radius:8px;
+  background:var(--accent);
+  color:white;
+  border:none;
+  cursor:pointer;
+}
 
-@router.post('/predict-summary')
-def predict_summary_endpoint(payload: RowsPayload, current_user = Depends(get_current_user)):
-    # aquí podemos personalizar según current_user.company_id
-    out = predict_summary(payload.rows)
-    return {"summaryText": out}.           fastapi
-uvicorn[standard]
-sqlmodel
-sqlalchemy
-passlib[bcrypt]
-python-jose[cryptography]
-pandas
-scikit-learn
-joblib
-python-multipart
-pydantic
-numpy.           # Finanzas AI — RUN & TEST
+.btn.outline{
+  background:transparent;
+  border:1px solid var(--accent);
+}
 
-## Backend (local)
-1. Crear virtualenv
-2. pip install -r backend/requirements.txt
-3. cd backend
-4. uvicorn app.main:app --reload --port 8000
+.section{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+}
 
-Al arrancar crea `finanzas.db` con tablas User/Company.
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+}
 
-## Frontend
-Abrir `frontend/index.html` (o servirlo con GitHub Pages). Para usar endpoints protegidos debes:
-- Registrarte con POST /auth/register o usar /auth/token
-- Guardar token en localStorage (el frontend ya lo hace)
-- Llamar al botón "Analizar con IA" después de loguearte
+.table-wrap{
+  margin-top:20px;
+  overflow:auto;
+}
 
-## Credenciales de prueba
-Registrar un usuario en UI o usar:
-- email: demo@finanzas.ai
-- password: Demo1234!
+.cols{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-top:20px;
+}
+
+.hidden{display:none;}
+
+.footer{
+  text-align:center;
+  padding:20px;
+  color:var(--muted);
+}.                    let originalData = null;
+
+const fileInput = document.getElementById("file-input");
+const previewControls = document.getElementById("preview-controls");
+const tableWrap = document.getElementById("table-wrap");
+const entriesWrap = document.getElementById("entries-wrap");
+const entriesSection = document.getElementById("entries-section");
+
+const selAmount = document.getElementById("col-amount");
+const selDesc = document.getElementById("col-desc");
+const selCurr = document.getElementById("col-curr");
+const selType = document.getElementById("col-type");
+
+fileInput.addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: (res) => {
+      originalData = res.data;
+
+      const headers = res.meta.fields || [];
+      setupSelectors(headers);
+      renderTable(originalData, headers);
+
+      previewControls.classList.remove("hidden");
+      document.getElementById("generate-row").classList.remove("hidden");
+    }
+  });
+});
+
+function setupSelectors(hdrs){
+  [selAmount, selDesc, selCurr, selType].forEach(sel=>{
+    sel.innerHTML = '<option value="">-- seleccionar --</option>';
+    hdrs.forEach(h=>{
+      let op = document.createElement("option");
+      op.value = h;
+      op.textContent = h;
+      sel.appendChild(op);
+    });
+  });
+}
+
+function renderTable(data, headers){
+  tableWrap.classList.remove("hidden");
+  let html = "<table><thead><tr>";
+
+  headers.forEach(h => html += `<th>${h}</th>`);
+  html += "</tr></thead><tbody>";
+
+  data.slice(0,200).forEach(row=>{
+    html += "<tr>";
+    headers.forEach(h=>{
+      html += `<td>${row[h] || ""}</td>`;
+    });
+    html += "</tr>";
+  });
+
+  html += "</tbody></table>";
+  tableWrap.innerHTML = html;
+}
+
+document.getElementById("generate-entries").addEventListener("click", ()=>{
+  const amountCol = selAmount.value;
+  const descCol = selDesc.value;
+  const currCol = selCurr.value;
+  const typeCol = selType.value;
+
+  const entries = [];
+
+  originalData.forEach(row=>{
+    const amount = parseFloat(row[amountCol]?.replace(",",".") || 0);
+    const desc = row[descCol] || "";
+    const curr = row[currCol] || "";
+    let type = row[typeCol]?.toLowerCase() || "";
+
+    if(/vent/.test(type)) type = "venta";
+    else if(/comp/.test(type)) type = "compra";
+    else type = amount < 0 ? "compra" : "venta";
+
+    entries.push({
+      fecha: row["fecha"] || row["date"] || "",
+      descripcion: desc,
+      moneda: curr,
+      debe: type === "venta" ? "Clientes" : "Gastos",
+      haber: type === "venta" ? "Ingresos" : "Proveedores",
+      monto: Math.abs(amount)
+    });
+  });
+
+  window._generatedEntries = entries;
+  renderEntries(entries);
+  entriesSection.classList.remove("hidden");
+});
+
+function renderEntries(entries){
+  entriesWrap.innerHTML = "";
+  entries.forEach((e,i)=>{
+    entriesWrap.innerHTML += `
+      <div class="card">
+        <strong>#${i+1}</strong> — ${e.fecha} (${e.moneda})
+        <div><em>${e.descripcion}</em></div>
+        <div>DEBE: ${e.debe} — ${e.monto}</div>
+        <div>HABER: ${e.haber} — ${e.monto}</div>
+      </div>
+    `;
+  });
+}      
