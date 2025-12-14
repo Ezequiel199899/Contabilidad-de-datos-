@@ -253,4 +253,133 @@ def root():
 WORKDIR /app
 COPY . .
 RUN pip install -r requirements.txt
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]         
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]        # backend/fuel_data.py
+# Precios estimados de combustible (USD por litro)
+# Fecha de referencia: 13-12-2024
+
+FUEL_PRICES = {
+    "Argentina": {
+        "nafta": 1.1,
+        "diesel": 1.0
+    },
+    "Brasil": {
+        "nafta": 1.3,
+        "diesel": 1.2
+    },
+    "USA": {
+        "nafta": 0.95,
+        "diesel": 1.05
+    },
+    "España": {
+        "nafta": 1.7,
+        "diesel": 1.6
+    }
+}                  # backend/fuel.py
+from fastapi import APIRouter
+from pydantic import BaseModel
+from .fuel_data import FUEL_PRICES
+
+router = APIRouter(prefix="/fuel", tags=["Fuel"])
+
+class FuelRequest(BaseModel):
+    country: str
+    fuel_type: str
+    km_month: float
+    consumption_per_100km: float
+
+@router.post("/calculate")
+def calculate_fuel_cost(data: FuelRequest):
+    price = FUEL_PRICES[data.country][data.fuel_type]
+    liters_used = (data.km_month / 100) * data.consumption_per_100km
+    total_cost = liters_used * price
+
+    return {
+        "country": data.country,
+        "fuel_type": data.fuel_type,
+        "liters_used": round(liters_used, 2),
+                  "price_per_liter_usd": price,
+        "monthly_cost_usd": round(total_cost, 2)
+    }             from fastapi import FastAPI
+from fuel import router as fuel_router
+
+app = FastAPI()
+
+app.include_router(fuel_router)
+
+@app.get("/")
+def root():
+    return {"msg": "Finanzas IA Enterprise — Backend listo"}.   from fastapi import FastAPI
+from fuel import router as fuel_router
+
+app = FastAPI()
+
+app.include_router(fuel_router)
+
+@app.get("/")
+def root():
+    return {"msg": "Finanzas IA Enterprise — Backend listo"}          // frontend/fuel.js
+
+async function calcularGasolina() {
+  const country = document.getElementById("fuel-country").value;
+  const fuelType = document.getElementById("fuel-type").value;
+  const km = parseFloat(document.getElementById("fuel-km").value);
+  const consumption = parseFloat(document.getElementById("fuel-consumption").value);
+
+  const res = await fetch("http://localhost:8000/fuel/calculate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      country: country,
+      fuel_type: fuelType,
+      km_month: km,
+      consumption_per_100km: consumption
+    })
+  });
+
+  const data = await res.json();
+
+  document.getElementById("fuel-result").innerHTML = `
+    <strong>Costo mensual:</strong> USD ${data.monthly_cost_usd}<br>
+    Litros usados: ${data.liters_used}
+  `;           <section class="section card">
+  <h2>Costos de Movilidad / Gasolina</h2>
+
+  <label>País</label>
+  <select id="fuel-country">
+    <option>Argentina</option>
+    <option>Brasil</option>
+    <option>USA</option>
+    <option>España</option>
+  </select>
+
+  <label>Tipo de combustible</label>
+  <select id="fuel-type">
+    <option value="nafta">Nafta</option>
+    <option value="diesel">Diesel</option>
+  </select>
+
+  <label>Kilómetros mensuales</label>
+  <input id="fuel-km" type="number" />
+
+  <label>Consumo (litros cada 100km)</label>
+  <input id="fuel-consumption" type="number" />
+
+  <button class="btn primary" onclick="calcularGasolina()">
+    Calcular costo
+  </button>
+
+  <div id="fuel-result" style="margin-top:10px;"></div>
+</section>
+
+<script src="fuel.js"></script>.                country,fuel_type,price_usd
+Argentina,nafta,1.1
+Argentina,diesel,1.0
+Brasil,nafta,1.3
+Brasil,diesel,1.2
+USA,nafta,0.95
+USA,diesel,1.05
+España,nafta,1.7
+España,diesel,1.6
+}          git add .
+git commit -m "Add fuel & mobility cost module (enterprise feature)"
+git push.              
