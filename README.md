@@ -1,385 +1,70 @@
-  Finanzas-IA-Enterprise/
-│
-├── README_ENTERPRISE.md
-├── .gitignore
-│
-├── frontend/
-│   ├── index.html
-│   ├── style.css
-│   └── app.js
-│
-└── backend/
-    ├── main.py
-    ├── auth.py
-    ├── config.py
-    ├── models.py
-    ├── database.py
-    ├── requirements.txt
-    └── Dockerfile.           README_ENTERPRISE. # Finanzas IA — Enterprise Edition
-Autor: Ezequiel Samuel Prilusky  
-Fecha: 27 de noviembre de 2025  
-Estado: **Privado** — listo para despliegue (frontend + backend)
+/
+├── main.py
+├── quantum_simulator.py
+├── requirements.txt
+└── vercel.json.            import random
+from typing import Dict
 
-## Resumen
-Versión empresarial del prototipo “Finanzas IA”. Incluye:
-
-- Frontend estático (HTML/CSS/JS) para carga y procesamiento básico de CSV.
-- Backend en FastAPI con autenticación JWT.
-- Endpoints protegidos + stub de predicción para futura IA.
-- Preparado para Docker y despliegue en Render/Vercel.
-
-## Estructura del proyecto       .gitignore.         __pycache__/
-*.pyc
-.env
-venv/
-backend/finanzas.db
-.DS_Store
-node_modules/
-.vscode/.       __pycache__/
-*.pyc
-.env
-venv/
-backend/finanzas.db
-.DS_Store
-node_modules/
-.vscode/.         <!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>FINANZAS IA — App</title>
-
-  <link rel="stylesheet" href="style.css">
-
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-</head>
-
-<body>
-
-<header class="site-header">
-  <div class="brand">
-    <h2>FINANZAS IA</h2>
-    <span class="tag">Enterprise Edition</span>
-  </div>
-</header>
-
-<section class="hero">
-  <h1>Automatización contable con IA</h1>
-  <p>Subí un CSV, mapeá columnas y generá asientos en segundos.</p>
-</section>
-
-<section class="section card">
-  <h2>Cargar CSV</h2>
-  <input id="file-input" type="file" accept=".csv" />
-
-  <div id="preview-controls" class="cols hidden">
-    <div><label>Monto</label><select id="col-amount"></select></div>
-    <div><label>Descripción</label><select id="col-desc"></select></div>
-    <div><label>Moneda</label><select id="col-curr"></select></div>
-    <div><label>Tipo</label><select id="col-type"></select></div>
-  </div>
-
-  <div id="table-wrap" class="table-wrap hidden"></div>
-
-  <div class="actions hidden" id="generate-row">
-    <button id="generate-entries" class="btn primary">Generar Asientos</button>
-  </div>
-</section>
-
-<section class="section card hidden" id="entries-section">
-  <h2>Asientos generados</h2>
-  <div id="entries-wrap"></div>
-
-  <div class="actions">
-    <button id="export-csv" class="btn">Exportar CSV</button>
-    <button id="export-xlsx" class="btn">Exportar Excel</button>
-    <button id="export-pdf" class="btn">Exportar PDF</button>
-    <button id="download-original" class="btn outline">CSV original</button>
-  </div>
-</section>
-
-<footer class="footer">
-  © 2025 FINANZAS IA — Ezequiel S. Prilusky
-</footer>
-
-<script src="app.js"></script>
-</body>
-</html>.                               let originalData = null;
-
-const fileInput = document.getElementById('file-input');
-const previewControls = document.getElementById('preview-controls');
-const tableWrap = document.getElementById('table-wrap');
-const entriesWrap = document.getElementById('entries-wrap');
-const entriesSection = document.getElementById('entries-section');
-
-const selAmount = document.getElementById('col-amount');
-const selDesc = document.getElementById('col-desc');
-const selCurr = document.getElementById('col-curr');
-const selType = document.getElementById('col-type');
-
-fileInput?.addEventListener('change', e=>{
-  const file = e.target.files[0];
-  if(!file) return;
-
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    complete: res => {
-      originalData = res.data;
-      const headers = res.meta.fields || [];
-
-      setupSelectors(headers);
-      renderTable(originalData, headers);
-
-      previewControls.classList.remove('hidden');
-      document.getElementById('generate-row').classList.remove('hidden');
+def superposed_prediction(input_text: str) -> Dict[str, float]:
+    """
+    Genera un estado cuántico simulado (superposición).
+    """
+    estados = {
+        "positivo": random.random(),
+        "neutral": random.random(),
+        "negativo": random.random()
     }
-  });
-});
 
-function setupSelectors(headers){
-  [selAmount, selDesc, selCurr, selType].forEach(sel=>{
-    sel.innerHTML = '';
-    headers.forEach(h=>{
-      const op = document.createElement('option');
-      op.value = h;
-      op.textContent = h;
-      sel.appendChild(op);
-    });
-  });
-}
+    # Normalización (la suma debe ser 1)
+    total = sum(estados.values())
+    return {k: v / total for k, v in estados.items()}
 
-function renderTable(data, headers){
-  tableWrap.classList.remove('hidden');
-  let html = '<table><tr>';
+def collapse_wavefunction(state_probs: Dict[str, float]) -> str:
+    """
+    Colapso cuántico: elige un estado según su probabilidad.
+    """
+    opciones = list(state_probs.keys())
+    probabilidades = list(state_probs.values())
+    return random.choices(opciones, probabilidades)[0].      from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import Dict
 
-  headers.forEach(h => html += `<th>${h}</th>`);
-  html += '</tr>';
+from quantum_simulator import (
+    superposed_prediction,
+    collapse_wavefunction
+)
 
-  data.slice(0,200).forEach(row=>{
-    html += '<tr>';
-    headers.forEach(h => html += `<td>${row[h] || ''}</td>`);
-    html += '</tr>';
-  });
+app = FastAPI(title="Quantum AI Simulator")
 
-  html += '</table>';
-  tableWrap.innerHTML = html;
-}
-
-document.getElementById('generate-entries')?.addEventListener('click', ()=>{
-  if(!originalData) return alert('Subí un CSV primero.');
-
-  const entries = [];
-
-  originalData.forEach(r=>{
-    const amount = parseFloat(r[selAmount.value]) || 0;
-    if(amount === 0) return;
-
-    const desc = r[selDesc.value];
-    const curr = r[selCurr.value];
-    const tipo = (r[selType.value] || '').toLowerCase();
-
-    entries.push({
-      fecha: r.date || r.fecha || '',
-      descripcion: desc,
-      moneda: curr,
-      debe: tipo.includes('venta') ? 'Clientes' : 'Gastos',
-      haber: tipo.includes('venta') ? 'Ingresos' : 'Proveedores',
-      monto: Math.abs(amount)
-    });
-  });
-
-  window._generatedEntries = entries;
-  renderEntries(entries);
-  entriesSection.classList.remove('hidden');
-});
-
-function renderEntries(entries){
-  entriesWrap.innerHTML = '';
-
-  entries.forEach((e,i)=>{
-    const d = document.createElement('div');
-    d.className = 'card';
-    d.innerHTML = `
-      <strong>#${i+1}</strong> — ${e.fecha} (${e.moneda})
-      <div><em>${e.descripcion}</em></div>
-      <div>DEBE: ${e.debe} — ${e.monto}</div>
-      <div>HABER: ${e.haber} — ${e.monto}</div>
-    `;
-    entriesWrap.appendChild(d);
-  });
-}.                     fastapi==0.101.1
-uvicorn[standard]==0.23.0
-sqlmodel==0.0.8
-sqlalchemy==2.1.4
-passlib[bcrypt]==1.7.4
-python-jose[cryptography]==3.3.0
-pandas==2.2.2
-numpy==1.26.2
-python-multipart==0.0.6
-python-dotenv==1.0.0
-joblib==1.3.2.         from pydantic import BaseSettings
-
-class Settings(BaseSettings):
-    JWT_SECRET: str = "CAMBIAR"
-    ALGORITHM: str = "HS256"
-
-settings = Settings().       from passlib.context import CryptContext
-from datetime import timedelta, datetime
-from jose import jwt
-from .config import settings
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def hash_password(password: str):
-    return pwd_context.hash(password)
-
-def verify_password(plain: str, hashed: str):
-    return pwd_context.verify(plain, hashed)
-
-def create_token(data: dict, expires_minutes: int = 60):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
-    to_encode["exp"] = expire
-    return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.ALGORITHM)   n          from fastapi import FastAPI
-
-app = FastAPI()
+class QuantumRequest(BaseModel):
+    text: str
 
 @app.get("/")
 def root():
-    return {"msg": "Finanzas IA Enterprise — Backend listo"}    FROM python:3.10
-WORKDIR /app
-COPY . .
-RUN pip install -r requirements.txt
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]        # backend/fuel_data.py
-# Precios estimados de combustible (USD por litro)
-# Fecha de referencia: 13-12-2024
+    return {"status": "Quantum AI running ⚛️"}
 
-FUEL_PRICES = {
-    "Argentina": {
-        "nafta": 1.1,
-        "diesel": 1.0
-    },
-    "Brasil": {
-        "nafta": 1.3,
-        "diesel": 1.2
-    },
-    "USA": {
-        "nafta": 0.95,
-        "diesel": 1.05
-    },
-    "España": {
-        "nafta": 1.7,
-        "diesel": 1.6
-    }
-}                  # backend/fuel.py
-from fastapi import APIRouter
-from pydantic import BaseModel
-from .fuel_data import FUEL_PRICES
-
-router = APIRouter(prefix="/fuel", tags=["Fuel"])
-
-class FuelRequest(BaseModel):
-    country: str
-    fuel_type: str
-    km_month: float
-    consumption_per_100km: float
-
-@router.post("/calculate")
-def calculate_fuel_cost(data: FuelRequest):
-    price = FUEL_PRICES[data.country][data.fuel_type]
-    liters_used = (data.km_month / 100) * data.consumption_per_100km
-    total_cost = liters_used * price
+@app.post("/quantum_predict")
+def quantum_predict(request: QuantumRequest):
+    """
+    IA cuántica simulada:
+    - Superposición
+    - Colapso
+    """
+    state_vector: Dict[str, float] = superposed_prediction(request.text)
+    result = collapse_wavefunction(state_vector)
 
     return {
-        "country": data.country,
-        "fuel_type": data.fuel_type,
-        "liters_used": round(liters_used, 2),
-                  "price_per_liter_usd": price,
-        "monthly_cost_usd": round(total_cost, 2)
-    }             from fastapi import FastAPI
-from fuel import router as fuel_router
-
-app = FastAPI()
-
-app.include_router(fuel_router)
-
-@app.get("/")
-def root():
-    return {"msg": "Finanzas IA Enterprise — Backend listo"}.   from fastapi import FastAPI
-from fuel import router as fuel_router
-
-app = FastAPI()
-
-app.include_router(fuel_router)
-
-@app.get("/")
-def root():
-    return {"msg": "Finanzas IA Enterprise — Backend listo"}          // frontend/fuel.js
-
-async function calcularGasolina() {
-  const country = document.getElementById("fuel-country").value;
-  const fuelType = document.getElementById("fuel-type").value;
-  const km = parseFloat(document.getElementById("fuel-km").value);
-  const consumption = parseFloat(document.getElementById("fuel-consumption").value);
-
-  const res = await fetch("http://localhost:8000/fuel/calculate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      country: country,
-      fuel_type: fuelType,
-      km_month: km,
-      consumption_per_100km: consumption
-    })
-  });
-
-  const data = await res.json();
-
-  document.getElementById("fuel-result").innerHTML = `
-    <strong>Costo mensual:</strong> USD ${data.monthly_cost_usd}<br>
-    Litros usados: ${data.liters_used}
-  `;           <section class="section card">
-  <h2>Costos de Movilidad / Gasolina</h2>
-
-  <label>País</label>
-  <select id="fuel-country">
-    <option>Argentina</option>
-    <option>Brasil</option>
-    <option>USA</option>
-    <option>España</option>
-  </select>
-
-  <label>Tipo de combustible</label>
-  <select id="fuel-type">
-    <option value="nafta">Nafta</option>
-    <option value="diesel">Diesel</option>
-  </select>
-
-  <label>Kilómetros mensuales</label>
-  <input id="fuel-km" type="number" />
-
-  <label>Consumo (litros cada 100km)</label>
-  <input id="fuel-consumption" type="number" />
-
-  <button class="btn primary" onclick="calcularGasolina()">
-    Calcular costo
-  </button>
-
-  <div id="fuel-result" style="margin-top:10px;"></div>
-</section>
-
-<script src="fuel.js"></script>.                country,fuel_type,price_usd
-Argentina,nafta,1.1
-Argentina,diesel,1.0
-Brasil,nafta,1.3
-Brasil,diesel,1.2
-USA,nafta,0.95
-USA,diesel,1.05
-España,nafta,1.7
-España,diesel,1.6
-}          git add .
-git commit -m "Add fuel & mobility cost module (enterprise feature)"
-git push.              
+        "input": request.text,
+        "state_vector": state_vector,
+        "collapsed_result": result
+    }.      fastapi
+uvicorn
+pydantic.        uvicorn main:app --reload.       {
+  "input": "Este proyecto tiene mucho potencial",
+  "state_vector": {
+    "positivo": 0.48,
+    "neutral": 0.31,
+    "negativo": 0.21
+  },
+  "collapsed_result": "positivo"
+}.                   
