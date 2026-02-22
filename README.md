@@ -1,160 +1,239 @@
-/
-├── api/
-│   └── index.py        ← entrypoint Vercel
-├── app/
-│   ├── main.py         ← FastAPI app
-│   ├── models/
-│   │   ├── finance.py  ← modelos financieros clásicos
-│   │   └── quantum.py  ← modelo cuántico conceptual
-│   ├── schemas.py
-│   └── services/
-│       ├── predictor.py
-│       └── quantum_engine.py
-├── requirements.txt
-└── vercel.json.          fastapi
-uvicorn
-numpy
-pandas
-scikit-learn
-pydantic.     {
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "api/index.py"
-    }
-  ]
-}.             from app.main import app
+cash-flow-predictor.    app.py
+requirements.txt
+README.mdv.    flask
+flask_sqlalchemy.       from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, timedelta
 
-# Vercel detecta automáticamente "app".       from fastapi import FastAPI
-from app.schemas import FinanceInput
-from app.services.predictor import classic_prediction
-from app.services.quantum_engine import quantum_prediction
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///finance.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-app = FastAPI(
-    title="Quantum Finance AI",
-    description="Predicciones financieras clásicas + cuánticas",
-    version="1.0.0"
-)
+db = SQLAlchemy(app)
 
-@app.get("/")
-def root():
-    return {
-        "status": "online",
-        "model": "Finance AI",
-        "modes": ["classic", "quantum-inspired"]
-    }
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(10))  # income / expense
+    amount = db.Column(db.Float)
+    currency = db.Column(db.String(3))  # ARS / USD
+    date = db.Column(db.DateTime, default=datetime.utcnow)
 
-@app.post("/predict/classic")
-def predict_classic(data: FinanceInput):
-    return classic_prediction(data)
+@app.route("/")
+def home():
+    return jsonify({"message": "Cash Flow API Running"})
 
-@app.post("/predict/quantum")
-def predict_quantum(data: FinanceInput):
-    return quantum_prediction(data).          from pydantic import BaseModel
-
-class FinanceInput(BaseModel):
-    price_increase: float
-    customer_tenure: int
-    monthly_spend: float
-    competitors: int.              import numpy as np
-
-def classic_prediction(data):
-    # Modelo simple simulando churn / riesgo
-    score = (
-        data.price_increase * 0.4 +
-        (1 / (data.customer_tenure + 1)) * 0.3 +
-        data.monthly_spend * 0.2 +
-        data.competitors * 0.1
+@app.route("/add", methods=["POST"])
+def add_transaction():
+    data = request.json
+    
+    transaction = Transaction(
+        type=data["type"],
+        amount=data["amount"],
+        currency=data["currency"]
     )
+    
+    db.session.add(transaction)
+    db.session.commit()
+    
+    return jsonify({"message": "Transaction added"}), 201
 
-    probability = min(score / 100, 1)
+@app.route("/balance", methods=["GET"])
+def get_balance():
+    transactions = Transaction.query.all()
+    balance = {"ARS": 0, "USD": 0}
 
-    return {
-        "type": "classic",
-        "churn_probability": round(probability, 3),
-        "risk_level": "high" if probability > 0.6 else "medium" if probability > 0.3 else "low"
-    }.         import numpy as np
+    for t in transactions:
+        if t.type == "income":
+            balance[t.currency] += t.amount
+        else:
+            balance[t.currency] -= t.amount
 
-def quantum_prediction(data):
-    """
-    Modelo cuántico conceptual:
-    - superposición de estados
-    - colapso probabilístico
-    """
+    return jsonify(balance)
 
-    # Estados base (|0>, |1>)
-    states = np.array([
-        data.price_increase,
-        data.monthly_spend,
-        data.competitors,
-        1 / (data.customer_tenure + 1)
-    ])
+@app.route("/forecast", methods=["GET"])
+def forecast():
+    transactions = Transaction.query.all()
+    
+    total_income = sum(t.amount for t in transactions if t.type == "income")
+    total_expense = sum(t.amount for t in transactions if t.type == "expense")
 
-    # Normalización (amplitudes)
-    norm = np.linalg.norm(states)
-    amplitudes = states / norm
+    projection = total_income - total_expense
 
-    # Probabilidad cuántica (|ψ|²)
-    probabilities = amplitudes ** 2
-    quantum_score = probabilities.sum()
+    return jsonify({
+        "projected_balance_next_30_days": projection
+    })
 
-    # Ruido cuántico simulado
-    noise = np.random.normal(0, 0.05)
-    final_probability = min(max(quantum_score + noise, 0), 1)
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True).       # Cash Flow Predictor
 
-    return {
-        "type": "quantum-inspired",
-        "superposition_state": amplitudes.tolist(),
-        "quantum_probability": round(final_probability, 3),
-        "interpretation": (
-            "Alta inestabilidad del sistema"
-            if final_probability > 0.6
-            else "Sistema en equilibrio probabilístico"
+Simple cash flow management API with ARS/USD support.
+Focused on small businesses liquidity control.
+
+## Features
+- Income & expense tracking
+- Multi-currency (ARS/USD)
+- Balance calculation
+- 30-day projection
+
+## Tech Stack
+- Python
+- Flask
+- SQLite
+
+## Run locally
+
+pip install -r requirements.txt
+python app.py.       git init
+git add .
+git commit -m "Initial MVP - Cash Flow Predictor"
+git branch -M main
+git remote add origin https://github.com/Ezequiel199899/cash-flow-predictor.git
+git push -u origin main.     cash-flow-predictor/
+│
+├── app.py
+├── requirements.txt
+├── templates/
+│   ├── login.html
+│   ├── register.html
+│   └── dashboard.html.     flask
+flask_sqlalchemy
+flask_login
+werkzeug. from flask import Flask, render_template, redirect, url_for, request
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'supersecretkey'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///finance.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+# ------------------ MODELS ------------------
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(200))
+
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(10))
+    amount = db.Column(db.Float)
+    currency = db.Column(db.String(3))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# ------------------ ROUTES ------------------
+
+@app.route("/")
+def home():
+    return redirect(url_for("login"))
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = generate_password_hash(request.form["password"])
+        
+        user = User(username=username, password=password)
+        db.session.add(user)
+        db.session.commit()
+        
+        return redirect(url_for("login"))
+    
+    return render_template("register.html")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        user = User.query.filter_by(username=request.form["username"]).first()
+        
+        if user and check_password_hash(user.password, request.form["password"]):
+            login_user(user)
+            return redirect(url_for("dashboard"))
+    
+    return render_template("login.html")
+
+@app.route("/dashboard", methods=["GET", "POST"])
+@login_required
+def dashboard():
+    if request.method == "POST":
+        transaction = Transaction(
+            type=request.form["type"],
+            amount=float(request.form["amount"]),
+            currency=request.form["currency"],
+            user_id=current_user.id
         )
-    }.             import numpy as np
+        db.session.add(transaction)
+        db.session.commit()
 
-def quantum_prediction(data):
-    """
-    Modelo cuántico conceptual:
-    - superposición de estados
-    - colapso probabilístico
-    """
+    transactions = Transaction.query.filter_by(user_id=current_user.id).all()
+    
+    balance = {"ARS": 0, "USD": 0}
+    for t in transactions:
+        if t.type == "income":
+            balance[t.currency] += t.amount
+        else:
+            balance[t.currency] -= t.amount
 
-    # Estados base (|0>, |1>)
-    states = np.array([
-        data.price_increase,
-        data.monthly_spend,
-        data.competitors,
-        1 / (data.customer_tenure + 1)
-    ])
+    return render_template("dashboard.html", balance=balance, transactions=transactions)
 
-    # Normalización (amplitudes)
-    norm = np.linalg.norm(states)
-    amplitudes = states / norm
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
 
-    # Probabilidad cuántica (|ψ|²)
-    probabilities = amplitudes ** 2
-    quantum_score = probabilities.sum()
+if __name__ == "__main__":
+    with app.app_context():
+        db.crea.    <h2>Register</h2>
+<form method="POST">
+    <input type="text" name="username" placeholder="Username" required><br>
+    <input type="password" name="password" placeholder="Password" required><br>
+    <button type="submit">Register</button>
+</form>
+<a href="/login">Login</a>.     te_all()
+    app.run(debug=True).    <h2>Dashboard</h2>
 
-    # Ruido cuántico simulado
-    noise = np.random.normal(0, 0.05)
-    final_probability = min(max(quantum_score + noise, 0), 1)
+<h3>Add Transaction</h3>
+<form method="POST">
+    <select name="type">
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+    </select><br>
 
-    return {
-        "type": "quantum-inspired",
-        "superposition_state": amplitudes.tolist(),
-        "quantum_probability": round(final_probability, 3),
-        "interpretation": (
-            "Alta inestabilidad del sistema"
-            if final_probability > 0.6
-            else "Sistema en equilibrio probabilístico"
-        )
-    }          git add .
-git commit -m "Finance AI with quantum-inspired predictions"
-git push
+    <input type="number" step="0.01" name="amount" placeholder="Amount" required><br>
+
+    <select name="currency">
+        <option value="ARS">ARS</option>
+        <option value="USD">USD</option>
+    </select><br>
+
+    <button type="submit">Add</button>
+</form>
+
+<h3>Balance</h3>
+<p>ARS: {{ balance["ARS"] }}</p>
+<p>USD: {{ balance["USD"] }}</p>
+
+<h3>Transactions</h3>
+<ul>
+{% for t in transactions %}
+    <li>{{ t.type }} - {{ t.amount }} {{ t.currency }}</li>
+{% endfor %}
+</ul>
+
+<a href="/logout">Logout</a>.      pip install -r requirements.txt
+python app.py.  pip install -r requirements.txt
+python app.py.  http://127.0.0.1:5000
