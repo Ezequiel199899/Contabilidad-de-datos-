@@ -236,4 +236,65 @@ if __name__ == "__main__":
 
 <a href="/logout">Logout</a>.      pip install -r requirements.txt
 python app.py.  pip install -r requirements.txt
-python app.py.  http://127.0.0.1:5000
+python app.py.  http://127.0.0.1:5000.     requests.  import requests.  def convert_currency(from_currency, to_currency, amount):
+    url = f"https://api.exchangerate.host/convert?from={from_currency}&to={to_currency}&amount={amount}"
+    response = requests.get(url)
+    data = response.json()
+    
+    if "result" in data:
+        return data["result"]
+    return None
+     @app.route("/dashboard", methods=["GET", "POST"])
+@login_required
+def dashboard():
+    if request.method == "POST":
+        transaction = Transaction(
+            type=request.form["type"],
+            amount=float(request.form["amount"]),
+            currency=request.form["currency"],
+            user_id=current_user.id
+        )
+        db.session.add(transaction)
+        db.session.commit()
+
+    transactions = Transaction.query.filter_by(user_id=current_user.id).all()
+    
+    balance = {
+        "ARS": 0,
+        "USD": 0,
+        "EUR": 0,
+        "GBP": 0,
+        "BRL": 0,
+        "CLP": 0,
+        "UYU": 0
+    }
+
+    for t in transactions:
+        if t.type == "income":
+            balance[t.currency] += t.amount
+        else:
+            balance[t.currency] -= t.amount
+
+    # Convertir todo a EUR
+    total_in_eur = 0
+    for currency, amount in balance.items():
+        if amount != 0:
+            converted = convert_currency(currency, "EUR", amount)
+            if converted:
+                total_in_eur += converted
+
+    return render_template(
+        "dashboard.html",
+        balance=balance,
+        total_eur=round(total_in_eur, 2),
+        transactions=transactions
+    ).   <select name="currency">
+    <option value="ARS">ARS</option>
+    <option value="USD">USD</option>
+    <option value="EUR">EUR</option>
+    <option value="GBP">GBP</option>
+    <option value="BRL">BRL</option>
+    <option value="CLP">CLP</option>
+    <option value="UYU">UYU</option>
+</select>.  <h3>Total convertido a EUR</h3>
+<p>{{ total_eur }} EUR</p>
