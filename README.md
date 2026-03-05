@@ -297,4 +297,118 @@ def dashboard():
     <option value="CLP">CLP</option>
     <option value="UYU">UYU</option>
 </select>.  <h3>Total convertido a EUR</h3>
-<p>{{ total_eur }} EUR</p>
+<p>{{ total_eur }} EUR</p>.            contabilidad-de-datos
+│
+├── main.py
+├── requirements.txt
+│
+├── automation
+│   ├── alerts.py
+│   └── predictions.py
+│
+├── analysis
+│   └── pipeline.py
+│
+├── data
+│
+└── README.md.      import pandas as pd
+
+def detect_anomalies(df):
+    alerts = []
+    
+    avg_expense = df["expenses"].mean()
+
+    for value in df["expenses"]:
+        if value > avg_expense * 1.5:
+            alerts.append("High expense anomaly detected").      from sklearn.linear_model import LinearRegression
+import numpy as np
+
+def predict_trend(data):
+    
+    X = np.array(range(len(data))).reshape(-1,1)
+    y = np.array(data)
+
+    model = LinearRegression()
+    model.fit(X,y)
+
+    next_value = model.predict([[len(data)]])
+    
+    return next_value[0]
+
+    return alerts.      from automation.alerts import detect_anomalies
+from automation.predictions import predict_trend
+
+def run_analysis(df):
+
+    alerts = detect_anomalies(df)
+
+    prediction = predict_trend(df["income"]).       import pandas as pd
+from analysis.pipeline import run_analysis
+
+def main():
+
+    df = pd.read_csv("data/financial_data.csv")
+
+    results = run_analysis(df)
+
+    print("Analysis Results")
+    print("----------------")
+
+    print("Alerts:")
+    for alert in results["alerts"]:
+        print("-", alert)
+
+    print("\nNext income prediction:", results["next_income_prediction"])
+
+
+if __name__ == "__main__":
+    main().            pandas
+numpy
+scikit-learn.    # Automated Financial Data Analysis Platform
+
+## Overview
+
+This project is an automated financial data analysis platform built with Python.
+
+The system analyzes financial datasets, detects anomalies in expenses, and predicts future financial trends using machine learning techniques.
+
+## Features
+
+- Automated financial data analysis
+- Expense anomaly detection
+- Income trend prediction
+- Modular automation architecture
+
+## Technologies
+
+- Python
+- Pandas
+- NumPy
+- Scikit-learn
+
+## Architecture
+
+Data → Processing → Analysis → Prediction
+
+## Demo
+
+Vercel App:
+https://TU-LINK-DE-VERCEL
+
+## Repository
+
+GitHub:
+https://github.com/Ezequiel199899/Contabilidad-de-datos-
+
+## Project Status
+
+Active Development
+
+## Roadmap
+
+- AI-generated financial insights
+
+    return {
+        "alerts": alerts,
+        "next_income_prediction": prediction
+    }
