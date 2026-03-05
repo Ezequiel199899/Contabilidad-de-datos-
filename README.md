@@ -190,4 +190,21 @@ Active Development
 
 - AI generated financial insights
 - real-time analytics
-- cloud deployment
+- cloud deployment## Example API Request
+
+POST /add
+
+{
+ "type": "income",
+ "amount": 500,
+ "currency": "USD"
+}.        @app.route("/health")
+def health():
+    return {"status": "ok"}.   ## Example Response
+
+GET /analysis
+
+{
+ "alerts": ["High expense anomaly detected"],
+ "next_income_prediction": 520.34
+}
