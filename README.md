@@ -1,74 +1,65 @@
- data/
-notebooks/
-src/
-reports/.  import pandas as pd
+cashflow-ai/
+│
+├── app/
+│   └── app.py
+│
+├── data/
+│   └── sample_data.csv
+│
+├── models/
+│   └── model.py
+│
+├── utils/
+│   └── preprocessing.py
+│
+├── requirements.txt
+└── README.md       import streamlit as st
+import pandas as pd
+from models.model import detectar_anomalias, predecir
 
-def load_data(path):
-    df = pd.read_csv(path)
-    return df
+st.title("Cash Flow AI Platform")
 
-def basic_analysis(df):
-    print("Resumen del dataset:")
-    print(df.describe())
+uploaded_file = st.file_uploader("Subí tu CSV", type=["csv"])
 
-def detect_anomalies(df, column):
-    threshold = df[column].mean() + 2 * df[column].std()
-    anomalies = df[df[column] > threshold]
-    return anomalies
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
 
-if __name__ == "__main__":
-    df = load_data("../data/financial_data.csv")
-    basic_analysis(df)
+    st.subheader("Datos")
+    st.write(df.head())
 
-    anomalies = detect_anomalies(df, "expenses")
-    print("\nAnomalías detectadas:")
-    print(anomalies).    date,income,expenses
-2024-01-01,1000,800
-2024-01-02,1200,900
-2024-01-03,1100,950
-2024-01-04,1300,2000
-2024-01-05,1250,870
-2024-01-06,1400,920
-2024-01-07,1500,3000.         import pandas as pd
-import matplotlib.pyplot as plt
+    st.subheader("Detección de anomalías")
+    df["anomalia"] = detectar_anomalias(df)
+    st.write(df)
 
-df = pd.read_csv("../data/financial_data.csv")
-
-df.plot(x="date", y=["income", "expenses"])
-plt.xticks(rotation=45)
-plt.show().         plt.savefig("../reports/financial_plot.png").       pandas
-matplotlib
+    st.subheader("Predicción")
+    pred = predecir(df)
+    st.write(pred).     t.             def limpiar_datos(df):
+    df = df.dropna()
+    return df.   streamlit
+pandas
 numpy
-seaborn.     pip install -r requirements.txt
-python src/analysis.py. import pandas as pd
-from sklearn.linear_model import LinearRegression
+scikit-learn.     mes,ingresos,gastos
+1,1000,800
+2,1200,900
+3,900,850
+4,1500,1000
+5,1300,950.       # Cash Flow AI Platform
 
-def train_model(df):
-    df = df.copy()
-    df["day"] = range(len(df))
+Aplicación de análisis financiero con inteligencia artificial.
 
-    X = df[["day"]]
-    y = df["expenses"]
+## Funcionalidades
+- Predicción de flujo de caja
+- Detección de anomalías
+- Visualización de datos
 
-    model = LinearRegression()
-    model.fit(X, y)
+## Tecnologías
+- Python
+- Pandas
+- Scikit-learn
+- Streamlit
 
-    return model
+## Cómo ejecutar
 
-def predict_future(model, last_day, days_ahead=3):
-    future_days = [[last_day + i] for i in range(1, days_ahead + 1)]
-    predictions = model.predict(future_days)
-    return predictions scikit-learn.   scikit-learn.     pandas
-matplotlib
-numpy
-seaborn
-scikit-learn
-streamlit.   from src.model import train_model, predict_future.    # Predicción
-st.subheader("🔮 Predicción de gastos futuros")
-
-model = train_model(df)
-preds = predict_future(model, len(df))
-
-st.write("Próximos gastos estimados:")
-st.write(preds). pip install -r requirements.txt
-streamlit run app.py      
+```bash
+pip install -r requirements.txt
+streamlit run app/app.py     
