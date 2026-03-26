@@ -62,4 +62,55 @@ Aplicación de análisis financiero con inteligencia artificial.
 
 ```bash
 pip install -r requirements.txt
-streamlit run app/app.py     
+streamlit run app/app.py      README.md.  # 💸 Cash Flow AI Platform
+
+Plataforma inteligente para análisis financiero basada en inteligencia artificial.
+
+---
+
+## 🚀 ¿Qué hace esta app?
+
+- 📊 Analiza ingresos y gastos  
+- ⚠️ Detecta anomalías automáticamente  
+- 📈 Predice flujo de caja futuro  
+
+---
+
+## 🖥️ Demo del sistema
+
+### 📊 Visualización de datos
+(Acá agregás una captura de tu app)
+
+### ⚠️ Detección de anomalías
+(Acá agregás otra captura)
+
+### 📈 Predicción
+(Acá agregás otra captura)
+
+---
+
+## 🧠 Tecnologías
+
+- Python  
+- Pandas  
+- Scikit-learn  
+- Streamlit  
+
+---
+
+## 📦 Estado del proyecto
+
+🚧 Prototipo funcional en desarrollo (Startup en etapa inicial)
+
+---
+
+## 👨‍💻 Autor
+
+Ezequiel Samuel Prilusky  
+Mendoza, Argentina  
+
+---
+
+## 🔗 Repositorio
+
+https://github.com/Ezequiel199899/Contabilidad-de-datos-    
