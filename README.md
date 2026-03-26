@@ -1,251 +1,43 @@
- cash-flow-ai-platform/
-│
-├── app.py
-├── requirements.txt
-├── README.md
-│
-├── analysis
-│   ├── alerts.py
-│   ├── predictions.py
-│   ├── insights_ai.py
-│   └── pipeline.py
-│
-├── data
-│   └── sample_financial_data.csv
-│
-└── templates
-    ├── login.html
-    ├── register.html
-    └── dashboard.html.  from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-import pandas as pd
+ data/
+notebooks/
+src/
+reports/.  import pandas as pd
 
-from analysis.pipeline import run_analysis
+def load_data(path):
+    df = pd.read_csv(path)
+    return df
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///finance.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+def basic_analysis(df):
+    print("Resumen del dataset:")
+    print(df.describe())
 
-db = SQLAlchemy(app)
-
-
-class Transaction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(10))
-    amount = db.Column(db.Float)
-    currency = db.Column(db.String(3))
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-
-
-@app.route("/")
-def home():
-    return jsonify({"message": "Cash Flow AI Platform Running"})
-
-
-@app.route("/health")
-def health():
-    return {"status": "ok"}
-
-
-@app.route("/add", methods=["POST"])
-def add_transaction():
-
-    data = request.json
-
-    transaction = Transaction(
-        type=data["type"],
-        amount=data["amount"],
-        currency=data["currency"]
-    )
-
-    db.session.add(transaction)
-    db.session.commit()
-
-    return jsonify({"message": "Transaction added"}), 201
-
-
-@app.route("/balance")
-def balance():
-
-    transactions = Transaction.query.all()
-
-    balance = {"ARS": 0, "USD": 0}
-
-    for t in transactions:
-
-        if t.type == "income":
-            balance[t.currency] += t.amount
-        else:
-            balance[t.currency] -= t.amount
-
-    return jsonify(balance)
-
-
-@app.route("/analysis")
-def analysis():
-
-    transactions = Transaction.query.all()
-
-    data = []
-
-    for t in transactions:
-
-        data.append({
-            "income": t.amount if t.type == "income" else 0,
-            "expenses": t.amount if t.type == "expense" else 0
-        })
-
-    df = pd.DataFrame(data)
-
-    results = run_analysis(df)
-
-    return jsonify(results)
-
+def detect_anomalies(df, column):
+    threshold = df[column].mean() + 2 * df[column].std()
+    anomalies = df[df[column] > threshold]
+    return anomalies
 
 if __name__ == "__main__":
+    df = load_data("../data/financial_data.csv")
+    basic_analysis(df)
 
-    with app.app_context():
-        db.create_all()
+    anomalies = detect_anomalies(df, "expenses")
+    print("\nAnomalías detectadas:")
+    print(anomalies).    date,income,expenses
+2024-01-01,1000,800
+2024-01-02,1200,900
+2024-01-03,1100,950
+2024-01-04,1300,2000
+2024-01-05,1250,870
+2024-01-06,1400,920
+2024-01-07,1500,3000.         import pandas as pd
+import matplotlib.pyplot as plt
 
-    app.run(debug=True).     v a     from sklearn.linear_model import LinearRegression
-import numpy as np
+df = pd.read_csv("../data/financial_data.csv")
 
-
-def predict_trend(data):
-
-    X = np.array(range(len(data))).reshape(-1, 1)
-    y = np.array(data)
-
-    model = LinearRegression()
-    model.fit(X, y)
-
-    next_value = model.predict([[len(data)]])
-
-    return float(next_value[0]).       import numpy as np
-
-
-def generate_ai_insights(df):
-
-    insights = []
-
-    total_income = df["income"].sum()
-    total_expenses = df["expenses"].sum()
-
-    if total_income > total_expenses:
-        insights.append("Business is generating positive cash flow")
-
-    if total_expenses > total_income:
-        insights.append("Warning: expenses exceed income")
-
-    avg_expense = df["expenses"].mean()
-
-    high_expenses = df[df["expenses"] > avg_expense * 1.5]
-
-    if len(high_expenses) > 0:
-        insights.append("Detected unusually high expenses in recent transactions")
-
-    income_trend = np.polyfit(range(len(df["income"])), df["income"], 1)[0]
-
-    if income_trend > 0:
-        insights.append("Income trend appears to be increasing")
-
-    if income_trend < 0:
-        insights.append("Income trend appears to be decreasing")
-
-    if len(insights) == 0:
-        insights.append("Financial activity appears stable")
-
-    return insights. from analysis.alerts import detect_anomalies
-from analysis.predictions import predict_trend
-from analysis.insights_ai import generate_ai_insights
-
-
-def run_analysis(df):
-
-    alerts = detect_anomalies(df)
-
-    prediction = predict_trend(df["income"])
-
-    insights = generate_ai_insights(df)
-
-    return {
-        "alerts": alerts,
-        "next_income_prediction": prediction,
-        "ai_insights": insights
-    }.     flask
-flask_sqlalchemy
-pandas
+df.plot(x="date", y=["income", "expenses"])
+plt.xticks(rotation=45)
+plt.show().         plt.savefig("../reports/financial_plot.png").       pandas
+matplotlib
 numpy
-scikit-learn    # Cash Flow AI Platform
-
-Automated financial analysis platform built with Python and Flask.
-
-The system tracks financial transactions, calculates balances, detects anomalies in expenses and predicts financial trends using machine learning.
-
-## Features
-
-Financial transaction tracking  
-Multi currency balance calculation  
-Automated anomaly detection  
-Income trend prediction  
-AI generated financial insights  
-REST API architecture  
-
-## Tech Stack
-
-Python  
-Flask  
-SQLite  
-Pandas  
-Scikit-learn  
-
-## API Endpoints
-
-GET /
-Platform status
-
-GET /health
-API health check
-
-POST /add
-Add new transaction
-
-GET /balance
-Current balance
-
-GET /analysis
-Automated financial analysis
-
-## Example API Request
-
-POST /add
-
-{
- "type": "income",
- "amount": 500,
- "currency": "USD"
-}
-
-## Example Response
-
-GET /analysis
-
-{
- "alerts": ["High expense anomaly detected"],
- "next_income_prediction": 520.34,
- "ai_insights": [
-   "Business is generating positive cash flow",
-   "Income trend appears to be increasing"
- ]
-}
-
-## Example Use Case
-
-Small businesses can monitor liquidity, detect abnormal expenses and forecast future income trends.
-
-## Future Improvements
-
-AI generated financial insights  
-real-time analytics  
-cloud deployment    
+seaborn.     pip install -r requirements.txt
+python src/analysis.py.    
