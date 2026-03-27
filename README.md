@@ -1,24 +1,7 @@
-finanzas-ai/
-│
-├── backend/
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── api.py
-│   │   ├── api_predict.py
-│   │   ├── auth.py
-│   │   ├── db.py
-│   │   ├── models.py
-│   │   └── predictor.py
-│   │
-│   ├── requirements.txt
-│
-├── frontend/
-│   └── index.html
-│
-├── README.md
-├── .gitignore.           from typing import Optional, List
+from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
+
 
 class Company(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -37,49 +20,7 @@ class User(SQLModel, table=True):
     role: str = "user"
 
     company_id: Optional[int] = Field(default=None, foreign_key="company.id")
-    company: Optional[Company] = Relationship(back_populates="users").            from typing import Optional, List
-from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime
-
-class Company(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    users: List["User"] = Relationship(back_populates="company")
-
-
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    email: str = Field(index=True, unique=True)
-    full_name: Optional[str] = None
-    hashed_password: str
-    is_active: bool = True
-    role: str = "user"
-
-    company_id: Optional[int] = Field(default=None, foreign_key="company.id")
-    company: Optional[Company] = Relationship(back_populates="users").             from typing import Optional, List
-from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime
-
-class Company(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    users: List["User"] = Relationship(back_populates="company")
-
-
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    email: str = Field(index=True, unique=True)
-    full_name: Optional[str] = None
-    hashed_password: str
-    is_active: bool = True
-    role: str = "user"
-
-    company_id: Optional[int] = Field(default=None, foreign_key="company.id")
-    company: Optional[Company] = Relationship(back_populates="users").              from sqlmodel import create_engine, SQLModel, Session
+    company: Optional[Company] = Relationship(back_populates="users").            from sqlmodel import create_engine, SQLModel, Session
 from pathlib import Path
 
 DB_FILE = Path(__file__).resolve().parents[1] / "finanzas.db"
@@ -94,7 +35,7 @@ def create_db_and_tables():
 
 def get_session():
     with Session(engine) as session:
-        yield session.            from datetime import datetime, timedelta
+        yield session.     from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException
@@ -137,7 +78,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         user = session.get(User, user_id)
         if not user:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
-        return user.          from fastapi import APIRouter, HTTPException, Depends
+
+        return user.        from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from sqlmodel import select
 
@@ -229,8 +171,9 @@ class RowsPayload(BaseModel):
 @router.post("/predict-summary")
 def predict_summary_endpoint(payload: RowsPayload, current_user=Depends(get_current_user)):
     result = predict_summary(payload.rows)
-    return {"summaryText": result}.         def predict_summary(rows):
-    return "Análisis generado por IA (demo)".            from fastapi import FastAPI
+    return {"summaryText": result}.              def predict_summary(rows):
+    return "Análisis generado por IA (demo)".                     
+ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api import router as api_router
@@ -257,12 +200,10 @@ def on_startup():
 
 @app.get("/")
 def root():
-    return {"status": "ok"}.     v.           fastapi
+    return {"status": "ok"}.   fastapi
 uvicorn
 sqlmodel
 passlib[bcrypt]
 python-jose
-pydantic.         __pycache__/
-*.db
-.env.          
- 
+pydantic.          cd backend
+uvicorn app.main:app --reload.  
