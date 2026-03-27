@@ -74,4 +74,4 @@ def predecir(df):
 5,1300,950.           streamlit
 pandas
 numpy
-scikit-learn.    b   
+scikit-learn.    b    streamlit run app/app.py    
