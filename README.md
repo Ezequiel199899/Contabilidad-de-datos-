@@ -1,4 +1,4 @@
-lapp/.        from fastapi import FastAPI
+app/main.py.      from fastapi import FastAPI
 from app.api import router as api_router
 from app.db import create_db
 
@@ -6,7 +6,7 @@ app = FastAPI(title="Contabilidad API")
 
 create_db()
 
-app.include_router(api_router, prefix="/api").         from fastapi import APIRouter, Depends
+app.include_router(api_router, prefix="/api").   app/api.py.    from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
 from app.db import get_session
 from app.models import User, Company
@@ -29,7 +29,7 @@ def login(data: User, session: Session = Depends(get_session)):
 
 @router.get("/companies")
 def get_companies(session: Session = Depends(get_session)):
-    return session.exec(select(Company)).all().       from fastapi import HTTPException
+    return session.exec(select(Company)).all().    app/auth.py.      from fastapi import HTTPException
 from sqlmodel import Session, select
 from passlib.context import CryptContext
 from app.models import User
@@ -46,12 +46,7 @@ def authenticate(email: str, password: str, session: Session):
     user = session.exec(select(User).where(User.email == email)).first()
     if not user or not verify_password(password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return user.         import random
-
-def predict_income():
-    base = random.randint(800, 1500)
-    trend = random.uniform(0.9, 1.2)
-    return round(base * trend, 2).               from sqlmodel import SQLModel, create_engine, Session
+    return user.       app/db.py.       from sqlmodel import SQLModel, create_engine, Session
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
@@ -63,7 +58,7 @@ def create_db():
 
 def get_session():
     with Session(engine) as session:
-        yield session.         from sqlmodel import SQLModel, Field
+        yield session.     app/models.py.  from sqlmodel import SQLModel, Field
 from typing import Optional
 
 class User(SQLModel, table=True):
@@ -74,38 +69,12 @@ class User(SQLModel, table=True):
 class Company(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    revenue: float.             fastapi
+    revenue: float  b.  app/predictor.py.     import random
+
+def predict_income():
+    base = random.randint(800, 1500)
+    trend = random.uniform(0.9, 1.2)
+    return round(base * trend, 2).   requirements.txt. fastapi
 uvicorn
 sqlmodel
-passlib[bcrypt].      # Contabilidad de Datos API
-
-Aplicación Full Stack con foco en backend y análisis de datos, desarrollada con FastAPI para la gestión de empresas, procesamiento de datos financieros y predicción de ingresos.
-
----
-
-## Funcionalidades
-
-- Registro y login de usuarios (con hashing de contraseña)
-- Gestión de empresas
-- Predicción de ingresos
-- API REST documentada automáticamente
-
----
-
-## Demo
-
-http://localhost:8000/docs
-
-Swagger UI interactivo para probar la API.
-
----
-
-## Instalación
-
-pip install -r requirements.txt
-
----
-
-## Ejecutar
-
-uvicorn app.main:app --reload.                                 
+passlib[bcrypt]     README.md.                              
