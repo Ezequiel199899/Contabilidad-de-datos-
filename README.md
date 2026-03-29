@@ -1,111 +1,61 @@
-    from fastapi import FastAPI
-from app.api import router as api_router
-from app.db import create_db
+mkdir ai
+cd ai
 
-app = FastAPI(title="Contabilidad API")
+mkdir app models utils data
 
-create_db()
+type nul > app/app.py
+type nul > models/model.py
+type nul > utils/preprocessing.py
+type nul > data/sample_data.csv
+type nul > requirements.txt
+type nul > README.md                                                       mkdir ai
+cd ai
 
-app.include_router(api_router, prefix="/api").    from fastapi import APIRouter, Depends
-from sqlmodel import Session, select
-from app.db import get_session
-from app.models import User, Company
-from app.auth import authenticate, hash_password
+mkdir app models utils data
 
-router = APIRouter()
+type nul > app/app.py
+type nul > models/model.py
+type nul > utils/preprocessing.py
+type nul > data/sample_data.csv
+type nul > requirements.txt
+type nul > README.md                     import streamlit as st
+import pandas as pd
+from models.model import detectar_anomalias, predecir
+from utils.preprocessing import limpiar_datos
 
-@router.post("/register")
-def register(user: User, session: Session = Depends(get_session)):
-    user.password = hash_password(user.password)
-    session.add(user)
-    session.commit()
-    session.refresh(user)
-    return user
+st.set_page_config(page_title="Cash Flow AI", layout="wide")
 
-@router.post("/login")
-def login(data: User, session: Session = Depends(get_session)):
-    user = authenticate(data.email, data.password, session)
-    return {"message": "Login successful", "user_id": user.id}
+st.title("💸 Cash Flow AI Platform")
 
-@router.get("/companies")
-def get_companies(session: Session = Depends(get_session)):
-    return session.exec(select(Company)).all().   t.     from fastapi import HTTPException
-from sqlmodel import Session, select
-from passlib.context import CryptContext
-from app.models import User
+uploaded_file = st.file_uploader("Subí tu archivo CSV", type=["csv"])
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
 
-def hash_password(password: str):
-    return pwd_context.hash(password)
+    st.subheader("📊 Datos originales")
+    st.write(df.head())
 
-def verify_password(plain, hashed):
-    return pwd_context.verify(plain, hashed)
+    # Limpieza
+    df = limpiar_datos(df)
 
-def authenticate(email: str, password: str, session: Session):
-    user = session.exec(select(User).where(User.email == email)).first()
-    if not user or not verify_password(password, user.password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    return user.     from sqlmodel import SQLModel, create_engine, Session
+    st.subheader("🧹 Datos limpios")
+    st.write(df.head())
 
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+    # Anomalías
+    st.subheader("⚠️ Detección de anomalías")
+    df["anomalia"] = detectar_anomalias(df)
+    st.write(df)
 
-engine = create_engine(sqlite_url, echo=True)
+    # Gráfico
+    st.subheader("📈 Visualización")
+    st.line_chart(df[["ingresos", "gastos"]])
 
-def create_db():
-    SQLModel.metadata.create_all(engine)
-
-def get_session():
-    with Session(engine) as session:
-        yield session.     from sqlmodel import SQLModel, Field
-from typing import Optional
-
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    email: str
-    password: str
-
-class Company(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str
-    revenue: float.      from sqlmodel import SQLModel, Field
-from typing import Optional
-
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    email: str
-    password: str
-
-class Company(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str
-    revenue: float.           import random
-
-def predict_income():
-    base = random.randint(800, 1500)
-    trend = random.uniform(0.9, 1.2)
-    return round(base * trend, 2)     fastapi
-uvicorn
-sqlmodel
-passlib[bcrypt]     # Contabilidad de Datos API
-
-Aplicación Full Stack con foco en backend y análisis de datos.
-
-## Funcionalidades
-
-- Registro y login de usuarios
-- Gestión de empresas
-- Predicción de ingresos
-
-## Demo
-
-http://localhost:8000/docs
-
-## Instalación
-
-pip install -r requirements.txt
-
-## Ejecutar
-
-uvicorn app.main:app --reload.                          
+    # Predicción
+    st.subheader("🔮 Predicción de flujo de caja")
+    pred = predecir(df) 
+    st.write(pred)                     def limpiar_datos(df):
+    df = df.dropna()
+    df = df.drop_duplicates()
+    return df                   streamlit run app/app.py           type nul > app/__init__.py
+type nul > models/__init__.py
+type nul > utils/__init__.py      m                                                                         
