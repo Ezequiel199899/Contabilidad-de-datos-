@@ -1,13 +1,6 @@
 
-  from fastapi import FastAPI
-from app.api import router as api_router
-from app.db import create_db
-
-app = FastAPI(title="Contabilidad API")
-
-create_db()
-
-app.include_router(api_router, prefix="/api").       from fastapi import APIRouter, Depends, HTTPException
+    
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from app.db import get_session
 from app.models import User, Company
@@ -82,7 +75,7 @@ def authenticate(email: str, password: str, session: Session):
     user = session.exec(select(User).where(User.email == email)).first()
     if not user or not verify_password(password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return user.      from sqlmodel import SQLModel, create_engine, Session
+    return user.   from sqlmodel import SQLModel, create_engine, Session
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
@@ -105,15 +98,15 @@ class User(SQLModel, table=True):
 class Company(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    revenue: float.       import random
+    revenue: float.    import random
 
 def predict_income():
     base = random.randint(800, 1500)
     trend = random.uniform(0.9, 1.2)
-    return round(base * trend, 2).    fastapi
+    return round(base * trend, 2).      fastapi
 uvicorn
 sqlmodel
 passlib[bcrypt].   #!/bin/bash
-uvicorn app.main:app --host 0.0.0.0 --port 10000.      __pycache__/
+uvicorn app.main:app --host 0.0.0.0 --port 10000.     __pycache__/
 *.pyc
-database.db.      http://localhost:8000/docs.  
+database.db.    http://localhost:8000/docs    
