@@ -1,12 +1,4 @@
-from fastapi import FastAPI
-from app.api import router as api_router
-from app.db import create_db
-
-app = FastAPI(title="Contabilidad API")
-
-create_db()
-
-app.include_router(api_router, prefix="/api").      from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from app.db import get_session
 from app.models import User, Company
@@ -14,6 +6,8 @@ from app.auth import authenticate, hash_password
 from app.predictor import predict_income
 
 router = APIRouter()
+
+# ---------------- USERS ----------------
 
 @router.post("/register")
 def register(user: User, session: Session = Depends(get_session)):
@@ -28,62 +22,90 @@ def login(data: User, session: Session = Depends(get_session)):
     user = authenticate(data.email, data.password, session)
     return {"message": "Login successful", "user_id": user.id}
 
+# ---------------- COMPANIES ----------------
+
+@router.post("/companies")
+def create_company(company: Company, session: Session = Depends(get_session)):
+    session.add(company)
+    session.commit()
+    session.refresh(company)
+    return company
+
 @router.get("/companies")
 def get_companies(session: Session = Depends(get_session)):
     return session.exec(select(Company)).all()
 
-@router.get("/predict")
-def predict():
-    return {"predicted_income": predict_income()}.          t.         from sqlmodel import SQLModel, create_engine, Session
+@router.put("/companies/{company_id}")
+def update_company(company_id: int, updated: Company, session: Session = Depends(get_session)):
+    company = session.get(Company, company_id)
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
 
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+    company.name = updated.name
+    company.revenue = updated.revenue
+    session.commit()
+    return company
 
-engine = create_engine(sqlite_url, echo=True)
+@router.delete("/companies/{company_id}")
+def delete_company(company_id: int, session: Session = Depends(get_session)):
+    company = session.get(Company, company_id)
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
 
-def create_db():
-    SQLModel.metadata.create_all(engine)
+    session.delete(company)
+    session.commit()
+    return {"message": "Deleted"}
 
-def get_session():
-    with Session(engine) as session:
-        yield session.          from sqlmodel import SQLModel, Field
-from typing import Optional
+# ---------------- AI ----------------  # 💼 Contabilidad de Datos API
 
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    email: str
-    password: str
+API backend desarrollada con FastAPI para la gestión de empresas, autenticación de usuarios y predicción de ingresos.
 
-class Company(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str
-    revenue: float.            import random
+## 🚀 Tecnologías
 
-def predict_income():
-    base = random.randint(800, 1500)
-    trend = random.uniform(0.9, 1.2)
-    return round(base * trend, 2).      fastapi
-uvicorn
-sqlmodel
-passlib[bcrypt].       # Contabilidad de Datos API
+- FastAPI
+- SQLModel (SQLite)
+- Python
+- Passlib (seguridad)
 
-Aplicación backend desarrollada con FastAPI para gestionar empresas, usuarios y realizar predicciones simples de ingresos.
+## 🧠 Funcionalidades
 
-## Funcionalidades
+- Registro y login de usuarios con hashing de contraseñas
+- CRUD completo de empresas
+- Predicción de ingresos (simulación basada en tendencias)
+- API REST documentada automáticamente con Swagger
 
-- Registro y login de usuarios (con seguridad)
-- Gestión de empresas
-- Predicción de ingresos
-- API REST con documentación automática
+## 📊 Caso de uso
 
-## Demo
+Esta aplicación permite a pequeñas empresas:
+
+- Gestionar sus datos financieros
+- Centralizar información
+- Obtener estimaciones rápidas de ingresos futuros
+
+## 🔥 Demo
+
+Acceder a la documentación interactiva:
 
 http://localhost:8000/docs
 
-## Instalación
+## ⚙️ Instalación
 
-pip install -r requirements.txt
+```bash
+pip install -r requirements.txt.  uvicorn app.main:app --reload.                            
 
-## Ejecutar
+@router.get("/predict")
+def predict():
+    return {"predicted_income": predict_income()}.        ---
 
-uvicorn app.main:app --reload        
+# 🚀 🔥 3. DETALLE PRO (MUY IMPORTANTE)
+
+👉 En tu repo agregá esto:
+
+## 📁 `.gitignore`
+
+```txt
+__pycache__/
+*.pyc
+database.db.      @router.get("/health")
+def health():
+    return {"status": "ok"}.                
