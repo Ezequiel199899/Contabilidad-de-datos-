@@ -58,8 +58,8 @@ def predict():
 
 @router.get("/health")
 def health():
-    return {"status": "ok"}.        #!/bin/bash
+    return {"status": "ok"}.      #!/bin/bash
 uvicorn app.main:app --host 0.0.0.0 --port 10000.      fastapi
 uvicorn
 sqlmodel
-passlib[bcrypt]                
+passlib[bcrypt].  bl           
