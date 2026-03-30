@@ -9,7 +9,7 @@ app = FastAPI(title="Contabilidad API")
 
 create_db()
 
-app.include_router(api_router, prefix="/api").     ====================
+app.include_router(api_router, prefix="/api").       ====================
 app/api.py
 ====================
 from fastapi import APIRouter, Depends, HTTPException
@@ -72,7 +72,7 @@ def predict():
 
 @router.get("/health")
 def health():
-    return {"status": "ok"}.     ====================
+    return {"status": "ok"}.       ====================
 app/auth.py
 ====================
 from fastapi import HTTPException
@@ -94,7 +94,22 @@ def authenticate(email: str, password: str, session: Session):
     if not user or not verify_password(password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    return user.     ====================
+    return user.    ====================
+app/db.py
+====================
+from sqlmodel import SQLModel, create_engine, Session
+
+sqlite_file_name = "database.db"
+sqlite_url = f"sqlite:///{sqlite_file_name}"
+
+engine = create_engine(sqlite_url, echo=True)
+
+def create_db():
+    SQLModel.metadata.create_all(engine)
+
+def get_session():
+    with Session(engine) as session:
+        yield session.      ====================
 app/models.py
 ====================
 from sqlmodel import SQLModel, Field
@@ -108,7 +123,7 @@ class User(SQLModel, table=True):
 class Company(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    revenue: float.     ====================
+    revenue: float.    ====================
 app/predictor.py
 ====================
 import random
@@ -116,22 +131,22 @@ import random
 def predict_income():
     base = random.randint(800, 1500)
     trend = random.uniform(0.9, 1.2)
-    return round(base * trend, 2).     ====================
+    return round(base * trend, 2).   ====================
 requirements.txt
 ====================
 fastapi
 uvicorn
 sqlmodel
-passlib[bcrypt].   ====================
+passlib[bcrypt].  ====================
 start.sh
 ====================
 #!/bin/bash
-uvicorn app.main:app --host 0.0.0.0 --port 10000.    ====================
+uvicorn app.main:app --host 0.0.0.0 --port 10000.   ====================
 .gitignore
 ====================
 __pycache__/
 *.pyc
-database.db.   ====================
+database.db.  ====================
 DEMO
 ====================
-http://localhost:8000/docs.   
+http://localhost:8000/docs 
