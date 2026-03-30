@@ -1,6 +1,4 @@
-
-    
- ======================
+====================
 app/main.py
 ====================
 from fastapi import FastAPI
@@ -52,6 +50,7 @@ def update_company(company_id: int, updated: Company, session: Session = Depends
     company = session.get(Company, company_id)
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
+
     company.name = updated.name
     company.revenue = updated.revenue
     session.commit()
@@ -62,6 +61,7 @@ def delete_company(company_id: int, session: Session = Depends(get_session)):
     company = session.get(Company, company_id)
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
+
     session.delete(company)
     session.commit()
     return {"message": "Deleted"}
@@ -72,7 +72,7 @@ def predict():
 
 @router.get("/health")
 def health():
-    return {"status": "ok"}. ====================
+    return {"status": "ok"}.     ====================
 app/auth.py
 ====================
 from fastapi import HTTPException
@@ -90,24 +90,11 @@ def verify_password(plain, hashed):
 
 def authenticate(email: str, password: str, session: Session):
     user = session.exec(select(User).where(User.email == email)).first()
+
     if not user or not verify_password(password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return user.   ====================
-app/db.py
-====================
-from sqlmodel import SQLModel, create_engine, Session
 
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-
-engine = create_engine(sqlite_url, echo=True)
-
-def create_db():
-    SQLModel.metadata.create_all(engine)
-
-def get_session():
-    with Session(engine) as session:
-        yield session.    ====================
+    return user.     ====================
 app/models.py
 ====================
 from sqlmodel import SQLModel, Field
@@ -135,16 +122,16 @@ requirements.txt
 fastapi
 uvicorn
 sqlmodel
-passlib[bcrypt].      ====================
+passlib[bcrypt].   ====================
 start.sh
 ====================
 #!/bin/bash
-uvicorn app.main:app --host 0.0.0.0 --port 10000.  ====================
+uvicorn app.main:app --host 0.0.0.0 --port 10000.    ====================
 .gitignore
 ====================
 __pycache__/
 *.pyc
-database.db.  ====================
+database.db.   ====================
 DEMO
 ====================
 http://localhost:8000/docs.   
