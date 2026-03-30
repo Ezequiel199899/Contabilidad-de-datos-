@@ -1,5 +1,19 @@
 
     
+ ======================
+app/main.py
+====================
+from fastapi import FastAPI
+from app.api import router as api_router
+from app.db import create_db
+
+app = FastAPI(title="Contabilidad API")
+
+create_db()
+
+app.include_router(api_router, prefix="/api").     ====================
+app/api.py
+====================
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from app.db import get_session
@@ -58,7 +72,10 @@ def predict():
 
 @router.get("/health")
 def health():
-    return {"status": "ok"}.        from fastapi import HTTPException
+    return {"status": "ok"}. ====================
+app/auth.py
+====================
+from fastapi import HTTPException
 from sqlmodel import Session, select
 from passlib.context import CryptContext
 from app.models import User
@@ -75,7 +92,10 @@ def authenticate(email: str, password: str, session: Session):
     user = session.exec(select(User).where(User.email == email)).first()
     if not user or not verify_password(password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return user.   from sqlmodel import SQLModel, create_engine, Session
+    return user.   ====================
+app/db.py
+====================
+from sqlmodel import SQLModel, create_engine, Session
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
@@ -87,7 +107,10 @@ def create_db():
 
 def get_session():
     with Session(engine) as session:
-        yield session.       from sqlmodel import SQLModel, Field
+        yield session.    ====================
+app/models.py
+====================
+from sqlmodel import SQLModel, Field
 from typing import Optional
 
 class User(SQLModel, table=True):
@@ -98,15 +121,30 @@ class User(SQLModel, table=True):
 class Company(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    revenue: float.    import random
+    revenue: float.     ====================
+app/predictor.py
+====================
+import random
 
 def predict_income():
     base = random.randint(800, 1500)
     trend = random.uniform(0.9, 1.2)
-    return round(base * trend, 2).      fastapi
+    return round(base * trend, 2).     ====================
+requirements.txt
+====================
+fastapi
 uvicorn
 sqlmodel
-passlib[bcrypt].   #!/bin/bash
-uvicorn app.main:app --host 0.0.0.0 --port 10000.     __pycache__/
+passlib[bcrypt].      ====================
+start.sh
+====================
+#!/bin/bash
+uvicorn app.main:app --host 0.0.0.0 --port 10000.  ====================
+.gitignore
+====================
+__pycache__/
 *.pyc
-database.db.    http://localhost:8000/docs    
+database.db.  ====================
+DEMO
+====================
+http://localhost:8000/docs.   
