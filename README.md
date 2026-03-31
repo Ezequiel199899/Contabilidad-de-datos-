@@ -1,4 +1,4 @@
-COMM.  from fastapi import FastAPI
+COMMIT.   app/main.py.  from fastapi import FastAPI
 from app.api import router as api_router
 from app.db import create_db
 
@@ -6,15 +6,7 @@ app = FastAPI(title="Contabilidad API")
 
 create_db()
 
-app.include_router(api_router, prefix="/api").IT.   app/main.py.       from fastapi import FastAPI
-from app.api import router as api_router
-from app.db import create_db
-
-app = FastAPI(title="Contabilidad API")
-
-create_db()
-
-app.include_router(api_router, prefix="/api").   COMMIT.       app/api.py.     from fastapi import APIRouter, Depends, HTTPException
+app.include_router(api_router, prefix="/api").  COMMIT.  app/api.py.    from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from app.db import get_session
 from app.models import User, Company
@@ -30,7 +22,6 @@ def register(user: User, session: Session = Depends(get_session)):
     session.commit()
     session.refresh(user)
     return user
-
 @router.post("/login")
 def login(data: User, session: Session = Depends(get_session)):
     user = authenticate(data.email, data.password, session)
@@ -71,10 +62,20 @@ def delete_company(company_id: int, session: Session = Depends(get_session)):
 @router.get("/predict")
 def predict():
     return {"predicted_income": predict_income()}
-     COMMIT. app/db.py. 
+
 @router.get("/health")
 def health():
-    return {"status": "ok"}.        COMMIT.      app/db.py.  COMMIT.   app/models.py.  from sqlmodel import SQLModel, Field
+    return {"status": "ok"}.  COMMIT.  app/db.py.   from sqlmodel import SQLModel, create_engine, Session
+
+sqlite_url = "sqlite:///database.db"
+engine = create_engine(sqlite_url, echo=True)
+
+def create_db():
+    SQLModel.metadata.create_all(engine)
+
+def get_session():
+    with Session(engine) as session:
+        yield session. COMMIT. app/models.py.    from sqlmodel import SQLModel, Field
 from typing import Optional
 
 class User(SQLModel, table=True):
@@ -82,10 +83,10 @@ class User(SQLModel, table=True):
     email: str
     password: str
 
-class.   Company(SQLModel, table=True):
+class Company(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    revenue: float.   app/auth.py.    from fastapi import HTTPException
+    revenue: float.     COMMITv.    app/auth.py.   from fastapi import  revenue: floatT TPException
 from sqlmodel import Session, select
 from passlib.context import CryptContext
 from app.models import User
@@ -104,7 +105,12 @@ def authenticate(email: str, password: str, session: Session):
     if not user or not verify_password(password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    return user.  Commit. app/predictor.py.  requirements.txt.   fastapi
+    return user.   COMMIT.    app/predictor.py. import random
+
+def predict_income():
+    base = random.randint(800, 1500)
+    trend = random.uniform(0.9, 1.2)
+    return round(base * trend, 2).    COMMIT.   requirements.txt.  fastapi
 uvicorn
 sqlmodel
-passlib[bcrypt].   render.yaml.  
+passlib[bcrypt].   COMMIT.     
