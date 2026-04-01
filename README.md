@@ -1,116 +1,105 @@
-COMMICOMMIT.   app/main.py.  from fastapi import FastAPI
-from app.api import router as api_router
-from app.db import create_db
+COMMICOMMITfy index.html to add user interface elements (e.g., selectors or input fields) that allow users to map CSV columns to the required fields for entry generation (Amount, Description, Currency, Type, etc.).
 
-app = FastAPI(title="Contabilidad API")
+Agregar Interfaz de Mapeo de Columnas
+Subtask:
+Modificar 'index.html' para añadir elementos de la interfaz de usuario (como selectores o campos de entrada) que permitan al usuario elegir qué columna del CSV corresponde a cada campo necesario para la generación de asientos (Monto, Descripción, Moneda, Tipo, etc.).
 
-create_db()
+Reasoning: The subtask requires modifying the index.html file to include column mapping elements. I will update the html_content variable to insert the new UI elements for column mapping, then write this content to the frontend/index.html file.
 
-app.include_router(api_router, prefix="/api").  COMMIT.  app/api.py.    from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
-from app.db import get_session
-from app.models import User, Company
-from app.auth import authenticate, hash_password
-from app.predictor import predict_income
 
-router = APIRouter()
+[ ]
+new_mapping_html = '''
+        <section id="column-mapping-section">
+            <h2>Mapeo de Columnas</h2>
+            <div class="mapping-controls">
+                <div>
+                    <label for="map-amount">Columna para Monto:</label>
+                    <select id="map-amount" class="column-selector">
+                        <option value="">Seleccionar columna</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="map-description">Columna para Descripción:</label>
+                    <select id="map-description" class="column-selector">
+                        <option value="">Seleccionar columna</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="map-currency">Columna para Moneda:</label>
+                    <select id="map-currency" class="column-selector">
+                        <option value="">Seleccionar columna</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="map-type">Columna para Tipo:</label>
+                    <select id="map-type" class="column-selector">
+                        <option value="">Seleccionar columna</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+'''
 
-@router.post("/register")
-def register(user: User, session: Session = Depends(get_session)):
-    user.password = hash_password(user.password)
-    session.add(user)
-    session.commit()
-    session.refresh(user)
-    return user
-@router.post("/login")
-def login(data: User, session: Session = Depends(get_session)):
-    user = authenticate(data.email, data.password, session)
-    return {"message": "Login successful", "user_id": user.id}
+# Find the position to insert the new mapping section
+# It should be after the generate-button inside the upload-section
+insert_position = html_content.find('<button id="generate-button">Generar Asientos</button>')
+if insert_position != -1:
+    # Insert the new HTML after the button and its closing tag
+    updated_html_content = html_content[:insert_position + len('<button id="generate-button">Generar Asientos</button>') + len('</button>') + len('\n')] + new_mapping_html + html_content[insert_position + len('<button id="generate-button">Generar Asientos</button>') + len('</button>') + len('\n'):]
+    html_content = updated_html_content
+else:
+    print("Could not find the insertion point for column mapping. Please check html_content.")
 
-@router.post("/companies")
-def create_company(company: Company, session: Session = Depends(get_session)):
-    session.add(company)
-    session.commit()
-    session.refresh(company)
-    return company
+# Also update the CSS to add styles for the new mapping section
+new_css_for_mapping = '''
+.mapping-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
 
-@router.get("/companies")
-def get_companies(session: Session = Depends(get_session)):
-    return session.exec(select(Company)).all()
+.mapping-controls div {
+    display: flex;
+    flex-direction: column;
+}
 
-@router.put("/companies/{company_id}")
-def update_company(company_id: int, updated: Company, session: Session = Depends(get_session)):
-    company = session.get(Company, company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+.mapping-controls label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
 
-    company.name = updated.name
-    company.revenue = updated.revenue
-    session.commit()
-    return company
+.column-selector {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 1em;
+    appearance: none; /* Remove default browser styling */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2C197.915L159.27%2C63.267c-5.83-6.075-15.82-6.075-21.652%2C0L5.42%2C197.915c-5.83%2C6.075-5.83%2C15.82%2C0%2C21.896l10.825%2C11.26c5.83%2C6.075%2C15.82%2C6.075%2C21.652%2C0l113.6-118.06l113.6%2C118.06c5.83%2C6.075%2C15.82%2C6.075%2C21.652%2C0l10.825-11.26C292.83%2C213.735%2C292.83%2C203.99%2C287%2C197.915z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+}
 
-@router.delete("/companies/{company_id}")
-def delete_company(company_id: int, session: Session = Depends(get_session)):
-    company = session.get(Company, company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+.column-selector:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
+}
+'''
 
-    session.delete(company)
-    session.commit()
-    return {"message": "Deleted"}
+# Append new CSS to existing css_content
+css_content += new_css_for_mapping
 
-@router.get("/predict")
-def predict():
-    return {"predicted_income": predict_income()}
+# Write the updated HTML and CSS content to files
+with open('frontend/index.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+print("frontend/index.html updated with column mapping interface.")
 
-@router.get("/health")
-def health():
-    return {"status": "ok"}.  COMMIT.  app/db.py.   from sqlmodel import SQLModel, create_engine, Session
-
-sqlite_url = "sqlite:///database.db"
-engine = create_engine(sqlite_url, echo=True)
-
-def create_db():
-    SQLModel.metadata.create_all(engine)
-
-def get_session():
-    with Session(engine) as session:
-        yield session. COMMIT. app/models.py.    from sqlmodel import SQLModel, Field
-from typing import Optional
-
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    email: str
-    password: str
-
-class Company(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str
-    revenue: float.     COMMITv.    app/auth.py.   from fastapi import  revenue: floatT TPException
-from sqlmodel import Session, select
-from passlib.context import CryptContext
-from app.models import User
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def hash_password(password: str):
-    return pwd_context.hash(password)
-
-def verify_password(plain, hashed):
-    return pwd_context.verify(plain, hashed)
-
-def authenticate(email: str, password: str, session: Session):
-    user = session.exec(select(User).where(User.email == email)).first()
-
-    if not user or not verify_password(password, user.password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    return user.   COMMIT.    app/predictor.py. import random
-
-def predict_income():
-    base = random.randint(800, 1500)
-    trend = random.uniform(0.9, 1.2)
-    return round(base * trend, 2).    COMMIT.   requirements.txt.  fastapi
-uvicorn
-sqlmodel
-passlib[bcrypt].   COMMIT.     
+with open('frontend/style.css', 'w', encoding='utf-8') as f:
+    f.write(css_content)
+print("frontend/style.css updated with mapping styles.")
+.   app/m
