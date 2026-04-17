@@ -18,8 +18,8 @@ def forecast():
     })
 
 if __name__ == "__main__":
-    app.run(port=5000).         pip install flask numpy
-python model.py.   package com.example.demo;
+    app.run(port=5000).    pip install flask numpy
+python model.py.  package com.example.demo;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -74,7 +74,7 @@ public class AccountingController {
                 "oil", 80.0
         );
     }
-}.      async function analizarDatos(data) {
+}       async function analizarDatos(data) {
   const res = await fetch("http://localhost:8080/api/analyze", {
     method: "POST",
     headers: {
@@ -87,21 +87,17 @@ public class AccountingController {
 
   console.log("Resultado completo:", result);
   console.log("Forecast:", result.forecast);
-}.    const data = [
+}.      const data = [
   { amount: 100, type: "ingreso" },
   { amount: 50, type: "egreso" },
   { amount: 200, type: "ingreso" }
 ];
 
-analizarDatos(data);         # Python
-http://localhost:5000
-
-# Java (Spring Boot)
-http://localhost:8080.      {
+analizarDatos(data);        {
   "datos": [...],
   "forecast": {
     "promedio": 116.6,
     "tendencia": 33.3,
     "proyeccion": 233.3
   }
-}.      
+}.  b
