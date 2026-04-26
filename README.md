@@ -5,44 +5,43 @@ app = Flask(__name__)
 
 @app.route("/forecast", methods=["POST"])
 def forecast():
-    data = request.json["values"]
+    try:
+        data = request.json.get("values", [])
 
-    avg = np.mean(data)
-    trend = (data[-1] - data[0]) / len(data)
-    future = data[-1] + trend
+        if not data or not isinstance(data, list):
+            return jsonify({"error": "Invalid input"}), 400
 
-    return jsonify({
-        "promedio": float(avg),
-        "tendencia": float(trend),
-        "proyeccion": float(future)
-    })
+        data = [float(x) for x in data]
+
+        avg = float(np.mean(data))
+        trend = float((data[-1] - data[0]) / len(data))
+        future = float(data[-1] + trend)
+
+        return jsonify({
+            "promedio": avg,
+            "tendencia": trend,
+            "proyeccion": future
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == "__main__":
-    app.run(port=5000).    pip install flask numpy
-python model.py.  package com.example.demo;
-
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.*;
-
-@RestController
+    app.run(port=5000, debug=True)    @RestController
 @RequestMapping("/api")
 public class AccountingController {
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @PostMapping("/analyze")
     public Map<String, Object> analyze(@RequestBody List<Map<String, Object>> data) {
 
-        List<Double> amounts = new ArrayList<>();
+        List<Double> amounts = data.stream()
+                .map(row -> Double.parseDouble(row.get("amount").toString()))
+                .toList();
 
-        for (Map<String, Object> row : data) {
-            amounts.add(Double.parseDouble(row.get("amount").toString()));
-        }
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("values", amounts);
+        Map<String, Object> body = Map.of("values", amounts);
 
         Object forecast = restTemplate.postForObject(
                 "http://localhost:5000/forecast",
@@ -74,30 +73,29 @@ public class AccountingController {
                 "oil", 80.0
         );
     }
-}       async function analizarDatos(data) {
-  const res = await fetch("http://localhost:8080/api/analyze", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  });
+}.         async function analizarDatos(data) {
+  try {
+    const res = await fetch("http://localhost:8080/api/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
 
-  const result = await res.json();
+    if (!res.ok) throw new Error("API error");
 
-  console.log("Resultado completo:", result);
-  console.log("Forecast:", result.forecast);
-}.      const data = [
-  { amount: 100, type: "ingreso" },
-  { amount: 50, type: "egreso" },
-  { amount: 200, type: "ingreso" }
-];
+    const result = await res.json();
+    console.log("Resultado:", result);
 
-analizarDatos(data);        {
-  "datos": [...],
-  "forecast": {
-    "promedio": 116.6,
-    "tendencia": 33.3,
-    "proyeccion": 233.3
+  } catch (error) {
+    console.error("Error:", error);
   }
-}.  b
+}
+
+analizarDatos([
+  { amount: 100 },
+  { amount: 50 },
+  { amount: 200 }
+]);          flask
+numpy.      
