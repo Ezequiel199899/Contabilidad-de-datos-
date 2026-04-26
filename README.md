@@ -1,101 +1,50 @@
- from flask import Flask, request, jsonify
-import numpy as np
+ Spring Boot (8080)
+   ↓ llama
+Flask (5000).    vision-assist-ai/
+│
+├── backend-spring/
+│   ├── Dockerfile
+│   └── target/app.jar
+│
+├── backend-flask/
+│   ├── app.py
+│   ├── requirements.txt
+│   └── Dockerfile
+│
+└── docker-compose.yml.  b.   app.run(host="0.0.0.0", port=5000).    flask
+numpy.      FROM python:3.11
 
-app = Flask(__name__)
+WORKDIR /app
 
-@app.route("/forecast", methods=["POST"])
-def forecast():
-    try:
-        data = request.json.get("values", [])
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-        if not data or not isinstance(data, list):
-            return jsonify({"error": "Invalid input"}), 400
+COPY . .
 
-        data = [float(x) for x in data]
+EXPOSE 5000
 
-        avg = float(np.mean(data))
-        trend = float((data[-1] - data[0]) / len(data))
-        future = float(data[-1] + trend)
+CMD ["python", "app.py"].    FROM eclipse-temurin:17
 
-        return jsonify({
-            "promedio": avg,
-            "tendencia": trend,
-            "proyeccion": future
-        })
+WORKDIR /app
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+COPY target/app.jar app.jar
 
+EXPOSE 8080
 
-if __name__ == "__main__":
-    app.run(port=5000, debug=True)    @RestController
-@RequestMapping("/api")
-public class AccountingController {
+ENTRYPOINT ["java", "-jar", "app.jar"].       version: "3.9"
 
-    private final RestTemplate restTemplate = new RestTemplate();
+services:
 
-    @PostMapping("/analyze")
-    public Map<String, Object> analyze(@RequestBody List<Map<String, Object>> data) {
+  flask:
+    build: ./backend-flask
+    container_name: flask-service
+    ports:
+      - "5000:5000"
 
-        List<Double> amounts = data.stream()
-                .map(row -> Double.parseDouble(row.get("amount").toString()))
-                .toList();
-
-        Map<String, Object> body = Map.of("values", amounts);
-
-        Object forecast = restTemplate.postForObject(
-                "http://localhost:5000/forecast",
-                body,
-                Object.class
-        );
-
-        return Map.of(
-                "datos", data,
-                "forecast", forecast
-        );
-    }
-
-    @GetMapping("/rates")
-    public Map<String, Double> getRates() {
-        return Map.of(
-                "USD", 1.0,
-                "EUR", 1.17,
-                "GBP", 1.35,
-                "BRL", 0.20
-        );
-    }
-
-    @GetMapping("/commodities")
-    public Map<String, Double> getCommodities() {
-        return Map.of(
-                "gold", 5000.0,
-                "silver", 84.0,
-                "oil", 80.0
-        );
-    }
-}.         async function analizarDatos(data) {
-  try {
-    const res = await fetch("http://localhost:8080/api/analyze", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
-    });
-
-    if (!res.ok) throw new Error("API error");
-
-    const result = await res.json();
-    console.log("Resultado:", result);
-
-  } catch (error) {
-    console.error("Error:", error);
-  }
-}
-
-analizarDatos([
-  { amount: 100 },
-  { amount: 50 },
-  { amount: 200 }
-]);          flask
-numpy.      
+  spring:
+    build: ./backend-spring
+    container_name: spring-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - flask.       docker-compose up --build.    
