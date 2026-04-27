@@ -1,4 +1,4 @@
-   from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify
 import numpy as np
 import os
 
@@ -34,7 +34,19 @@ def forecast():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port).   y.      server.port=${PORT:8080}.    @RestController
+    app.run(host="0.0.0.0", port=port).     flask
+numpy.      FROM python:3.11
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 5000
+
+CMD ["python", "app.py"].   server.port=${PORT:8080}.    @RestController
 @RequestMapping("/api")
 public class AccountingController {
 
@@ -89,12 +101,4 @@ public class AccountingController {
                 "soy", 450.0
         );
     }
-}.      FROM eclipse-temurin:17
-
-WORKDIR /app
-
-COPY target/app.jar app.jar
-
-EXPOSE 8080
-
-ENTRYPOINT ["java", "-jar", "app.jar"].      https://flask-xxxx.onrender.com.            
+}.       "https://flask-xxxx.onrender.com/forecast"            
