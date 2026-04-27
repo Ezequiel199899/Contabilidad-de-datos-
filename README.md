@@ -1,4 +1,4 @@
- from flask import Flask, request, jsonify
+   from flask import Flask, request, jsonify
 import numpy as np
 import os
 
@@ -34,19 +34,62 @@ def forecast():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port).    flask
-numpy.      FROM python:3.11
+    app.run(host="0.0.0.0", port=port).   y.      server.port=${PORT:8080}.    @RestController
+@RequestMapping("/api")
+public class AccountingController {
 
-WORKDIR /app
+    private final RestTemplate restTemplate = new RestTemplate();
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+    @GetMapping("/")
+    public Map<String, String> home() {
+        return Map.of(
+                "status", "ok",
+                "service", "financial API",
+                "endpoints", "/api/analyze, /api/rates, /api/commodities"
+        );
+    }
 
-COPY . .
+    @PostMapping("/analyze")
+    public Map<String, Object> analyze(@RequestBody List<Map<String, Object>> data) {
 
-EXPOSE 5000
+        List<Double> amounts = data.stream()
+                .map(row -> Double.parseDouble(row.get("amount").toString()))
+                .toList();
 
-CMD ["python", "app.py"].     server.port=${PORT:8080}.      FROM eclipse-temurin:17
+        Map<String, Object> body = Map.of("values", amounts);
+
+        Object forecast = restTemplate.postForObject(
+                "https://TU-FLASK-URL.onrender.com/forecast",
+                body,
+                Object.class
+        );
+
+        return Map.of(
+                "datos", data,
+                "forecast", forecast
+        );
+    }
+
+    @GetMapping("/rates")
+    public Map<String, Double> getRates() {
+        return Map.of(
+                "USD", 1.0,
+                "EUR", 1.17,
+                "ARS", 900.0,
+                "BRL", 5.0
+        );
+    }
+
+    @GetMapping("/commodities")
+    public Map<String, Double> getCommodities() {
+        return Map.of(
+                "gold", 5000.0,
+                "silver", 84.0,
+                "oil", 80.0,
+                "soy", 450.0
+        );
+    }
+}.      FROM eclipse-temurin:17
 
 WORKDIR /app
 
@@ -54,4 +97,4 @@ COPY target/app.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"].    
+ENTRYPOINT ["java", "-jar", "app.jar"].      https://flask-xxxx.onrender.com.            
