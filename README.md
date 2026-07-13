@@ -1,3 +1,41 @@
+        respuesta.put("forecast", forecast);
+        return ResponseEntity.ok(respuesta);
+    }
+}
+
+
+====================================================================
+ARCHIVO: backend-spring/src/main/java/com/contabilidad/api/controller/MercadoController.java
+====================================================================
+package com.contabilidad.api.controller;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api")
+public class MercadoController {
+
+    @Value("${flask.base-url:http://localhost:5000}")
+    private String flaskBaseUrl;
+
+    private final RestTemplate restTemplate;
+
+    public MercadoController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    // ---------- Divisas ----------
+
+    // GET /api/divisas?base=USD&destino=EUR -> Flask /divisas
+    @GetMapping("/divisas")
+    public ResponseEntity<Map> verDivisa(
+            @RequestParam(defaultValue = "USD") String base,
+            @RequestParam(defaultValue = "EUR") String destino) {
         String url = flaskBaseUrl + "/divisas?base=" + base + "&destino=" + destino;
         Map respuesta = restTemplate.getForObject(url, Map.class);
         return ResponseEntity.ok(respuesta);
